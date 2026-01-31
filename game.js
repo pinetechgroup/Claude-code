@@ -334,12 +334,13 @@ const AdaptiveLearning = {
     },
 
     /**
-     * Clear failure count on success
+     * Reduce failure count on success (but don't clear completely)
      */
     recordSuccess(num1, num2) {
         const key = `${Math.min(num1, num2)}x${Math.max(num1, num2)}`;
         if (this.struggleFacts[key]) {
-            this.struggleFacts[key].failures = Math.max(0, this.struggleFacts[key].failures - 2);
+            // Only reduce by 1 so we keep practicing struggling facts
+            this.struggleFacts[key].failures = Math.max(0, this.struggleFacts[key].failures - 1);
         }
     },
 
@@ -349,8 +350,22 @@ const AdaptiveLearning = {
     shouldShowMiniLesson(num1, num2) {
         const key = `${Math.min(num1, num2)}x${Math.max(num1, num2)}`;
         const struggle = this.struggleFacts[key];
-        // Show lesson after 2+ consecutive failures
-        return struggle && struggle.failures >= 2;
+        // Show lesson after 1+ failure (immediate helpful feedback)
+        return struggle && struggle.failures >= 1;
+    },
+
+    /**
+     * Get a fact that was just failed (for immediate retry)
+     */
+    getImmediateStruggleFact() {
+        // Find any fact with recent failures
+        for (const [key, data] of Object.entries(this.struggleFacts)) {
+            if (data.failures >= 1) {
+                const [n1, n2] = key.split('x').map(Number);
+                return { num1: n1, num2: n2, key };
+            }
+        }
+        return null;
     },
 
     /**
@@ -597,8 +612,23 @@ const MathEngine = {
 
         let problem = null;
 
-        // ADAPTIVE LEARNING: Check if we should focus on a struggling fact
-        if (AdaptiveLearning.shouldPracticeStruggleFact()) {
+        // ADAPTIVE LEARNING: First check for immediate struggle (just got wrong)
+        // 50% chance to immediately retry a fact that was just failed
+        const immediateFact = AdaptiveLearning.getImmediateStruggleFact();
+        if (immediateFact && Math.random() < 0.5) {
+            problem = {
+                type: 'multiplication',
+                num1: immediateFact.num1,
+                num2: immediateFact.num2,
+                answer: immediateFact.num1 * immediateFact.num2,
+                display: { num1: immediateFact.num1, operator: '×', num2: immediateFact.num2 },
+                key: immediateFact.key,
+                isStrugglePractice: true
+            };
+        }
+
+        // ADAPTIVE LEARNING: Check if we should focus on a long-term struggling fact
+        if (!problem && AdaptiveLearning.shouldPracticeStruggleFact()) {
             const strugglingFacts = AdaptiveLearning.getStrugglingFacts();
             if (strugglingFacts.length > 0) {
                 // Pick one of the struggling facts (weighted towards worst)
