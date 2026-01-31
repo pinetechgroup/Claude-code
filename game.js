@@ -109,19 +109,264 @@ const EncouragingMessages = [
     "Every mistake makes your brain stronger!",
 ];
 
-// Helpful hints based on problem type
-const HelpfulHints = {
-    multiplication: [
-        "Tip: Think of it as groups! {num1} groups of {num2}.",
-        "Try skip counting by {num2}: {skipCount}",
-        "Remember: {num1} × {num2} is the same as {num2} × {num1}!",
-        "Picture {num1} rows with {num2} dots in each row.",
-    ],
-    division: [
-        "Tip: Division is sharing equally. {num1} shared into groups of {num2}.",
-        "Think: What times {num2} equals {num1}?",
-        "How many groups of {num2} fit into {num1}?",
-    ],
+// =============================================================================
+// Adaptive Teaching System - Research-Based Strategies
+// =============================================================================
+
+/**
+ * Teaching strategies based on research for struggling students:
+ * 1. Build from known facts (luminouslearning.com)
+ * 2. Use visual arrays (voyagersopris.com)
+ * 3. Skip counting (thirdspacelearning.com)
+ * 4. Break into smaller steps (additudemag.com)
+ * 5. Real-world connections (joonapp.io)
+ */
+
+const TeachingStrategies = {
+    /**
+     * Generate multiple teaching approaches for a multiplication fact
+     */
+    getMultiplicationStrategies(num1, num2, answer) {
+        const strategies = [];
+        const smaller = Math.min(num1, num2);
+        const larger = Math.max(num1, num2);
+
+        // Strategy 1: Skip counting
+        const skipCount = [];
+        for (let i = 1; i <= smaller; i++) {
+            skipCount.push(larger * i);
+        }
+        strategies.push({
+            name: "Skip Counting",
+            icon: "🔢",
+            explanation: `Count by ${larger}s, ${smaller} times:`,
+            steps: skipCount.map((n, i) => `${i + 1}. ${larger} × ${i + 1} = ${n}`),
+            highlight: `The answer is ${answer}!`
+        });
+
+        // Strategy 2: Build from known fact (e.g., 6×7 = 6×5 + 6×2)
+        if (smaller > 2) {
+            const knownFact = smaller - 1;
+            const knownAnswer = larger * knownFact;
+            strategies.push({
+                name: "Build from What You Know",
+                icon: "🧱",
+                explanation: `Start with an easier fact:`,
+                steps: [
+                    `${larger} × ${knownFact} = ${knownAnswer} (easier fact!)`,
+                    `${larger} × ${smaller} = ${knownAnswer} + ${larger}`,
+                    `${knownAnswer} + ${larger} = ${answer}`
+                ],
+                highlight: `So ${num1} × ${num2} = ${answer}!`
+            });
+        }
+
+        // Strategy 3: Double strategy (for even numbers)
+        if (smaller % 2 === 0 && smaller >= 4) {
+            const half = smaller / 2;
+            const halfAnswer = larger * half;
+            strategies.push({
+                name: "Doubling Strategy",
+                icon: "✖️2",
+                explanation: `Double a smaller fact:`,
+                steps: [
+                    `${larger} × ${half} = ${halfAnswer}`,
+                    `Double it: ${halfAnswer} + ${halfAnswer} = ${answer}`
+                ],
+                highlight: `${num1} × ${num2} = ${answer}!`
+            });
+        }
+
+        // Strategy 4: Groups visualization
+        strategies.push({
+            name: "Picture Groups",
+            icon: "🎯",
+            explanation: `Imagine ${smaller} groups with ${larger} items each:`,
+            visual: true,
+            steps: [`${smaller} groups × ${larger} in each = ${answer} total`],
+            highlight: `Count them all: ${answer}!`
+        });
+
+        // Strategy 5: Commutative property (if it helps)
+        if (num1 !== num2 && num2 < num1) {
+            strategies.push({
+                name: "Flip It!",
+                icon: "🔄",
+                explanation: `${num1} × ${num2} is the same as ${num2} × ${num1}`,
+                steps: [`Sometimes ${num2} × ${num1} is easier to think about!`],
+                highlight: `Either way, the answer is ${answer}!`
+            });
+        }
+
+        return strategies;
+    },
+
+    /**
+     * Generate teaching approaches for division
+     */
+    getDivisionStrategies(dividend, divisor, answer) {
+        const strategies = [];
+
+        // Strategy 1: Think multiplication
+        strategies.push({
+            name: "Think Multiplication",
+            icon: "🔁",
+            explanation: `Division is the opposite of multiplication:`,
+            steps: [
+                `Ask: What × ${divisor} = ${dividend}?`,
+                `${answer} × ${divisor} = ${dividend}`,
+            ],
+            highlight: `So ${dividend} ÷ ${divisor} = ${answer}!`
+        });
+
+        // Strategy 2: Equal groups / sharing
+        strategies.push({
+            name: "Share Equally",
+            icon: "🤝",
+            explanation: `Imagine sharing ${dividend} items into groups of ${divisor}:`,
+            steps: [
+                `How many groups of ${divisor} can you make from ${dividend}?`,
+                `${divisor} + ${divisor} + ... = ${dividend}`,
+            ],
+            highlight: `You can make ${answer} groups!`
+        });
+
+        // Strategy 3: Skip counting backwards
+        const skips = [];
+        for (let i = 1; i <= answer && i <= 5; i++) {
+            skips.push(divisor * i);
+        }
+        if (answer > 5) skips.push('...');
+        skips.push(dividend);
+
+        strategies.push({
+            name: "Skip Count Up",
+            icon: "📈",
+            explanation: `Count by ${divisor}s until you reach ${dividend}:`,
+            steps: skips.map((n, i) => typeof n === 'number' ? `${i + 1}. ${n}` : '...'),
+            highlight: `It took ${answer} jumps to reach ${dividend}!`
+        });
+
+        return strategies;
+    },
+
+    /**
+     * Get a mini-lesson for a struggling fact
+     */
+    getMiniLesson(problem, failCount) {
+        const { num1, num2, answer, type } = {
+            num1: problem.display.num1,
+            num2: problem.display.num2,
+            answer: problem.answer,
+            type: problem.type
+        };
+
+        if (type === 'multiplication' || type === 'division' && problem.type === 'multiplication') {
+            const strategies = this.getMultiplicationStrategies(
+                type === 'division' ? answer : num1,
+                type === 'division' ? num2 : num2,
+                type === 'division' ? num1 : answer
+            );
+            // Return a different strategy based on fail count to try different approaches
+            return strategies[failCount % strategies.length];
+        } else {
+            const strategies = this.getDivisionStrategies(num1, num2, answer);
+            return strategies[failCount % strategies.length];
+        }
+    }
+};
+
+/**
+ * Adaptive Learning Engine - Focuses on struggling facts
+ */
+const AdaptiveLearning = {
+    // Track consecutive failures on specific facts
+    struggleFacts: {}, // { "3x7": { failures: 3, lastStrategy: 0 } }
+
+    /**
+     * Check if a fact is a struggle fact (failed multiple times)
+     */
+    isStruggleFact(num1, num2) {
+        const key = `${Math.min(num1, num2)}x${Math.max(num1, num2)}`;
+        const perf = GameState.factPerformance[key];
+        if (!perf) return false;
+
+        const total = perf.correct + perf.incorrect;
+        if (total < 3) return false;
+
+        const accuracy = perf.correct / total;
+        return accuracy < 0.6; // Less than 60% accuracy = struggling
+    },
+
+    /**
+     * Get facts the student is struggling with
+     */
+    getStrugglingFacts() {
+        const struggling = [];
+        for (const [key, perf] of Object.entries(GameState.factPerformance)) {
+            const total = perf.correct + perf.incorrect;
+            if (total >= 3) {
+                const accuracy = perf.correct / total;
+                if (accuracy < 0.7) {
+                    struggling.push({
+                        key,
+                        accuracy: Math.round(accuracy * 100),
+                        attempts: total,
+                        recentFailure: Date.now() - perf.lastSeen < 300000 // Within 5 min
+                    });
+                }
+            }
+        }
+        // Sort by accuracy (worst first)
+        return struggling.sort((a, b) => a.accuracy - b.accuracy);
+    },
+
+    /**
+     * Record a failure and get the fail count
+     */
+    recordFailure(num1, num2) {
+        const key = `${Math.min(num1, num2)}x${Math.max(num1, num2)}`;
+        if (!this.struggleFacts[key]) {
+            this.struggleFacts[key] = { failures: 0, lastStrategy: 0 };
+        }
+        this.struggleFacts[key].failures++;
+        return this.struggleFacts[key].failures;
+    },
+
+    /**
+     * Clear failure count on success
+     */
+    recordSuccess(num1, num2) {
+        const key = `${Math.min(num1, num2)}x${Math.max(num1, num2)}`;
+        if (this.struggleFacts[key]) {
+            this.struggleFacts[key].failures = Math.max(0, this.struggleFacts[key].failures - 2);
+        }
+    },
+
+    /**
+     * Should we show a mini-lesson?
+     */
+    shouldShowMiniLesson(num1, num2) {
+        const key = `${Math.min(num1, num2)}x${Math.max(num1, num2)}`;
+        const struggle = this.struggleFacts[key];
+        // Show lesson after 2+ consecutive failures
+        return struggle && struggle.failures >= 2;
+    },
+
+    /**
+     * Decide if next problem should be a struggling fact (adaptive)
+     */
+    shouldPracticeStruggleFact() {
+        const struggling = this.getStrugglingFacts();
+        if (struggling.length === 0) return false;
+
+        // 40% chance to practice a struggling fact (not too overwhelming)
+        // But increase to 60% if there's a recent failure
+        const hasRecentFailure = struggling.some(f => f.recentFailure);
+        const chance = hasRecentFailure ? 0.6 : 0.4;
+
+        return Math.random() < chance;
+    }
 };
 
 // =============================================================================
@@ -350,32 +595,55 @@ const MathEngine = {
             this.generateProblemPool();
         }
 
-        // Find a problem that wasn't recently shown
-        let attempts = 0;
         let problem = null;
 
-        while (attempts < this.problemPool.length) {
-            // Get next problem from shuffled pool
-            problem = this.problemPool[this.poolIndex];
-            this.poolIndex = (this.poolIndex + 1) % this.problemPool.length;
+        // ADAPTIVE LEARNING: Check if we should focus on a struggling fact
+        if (AdaptiveLearning.shouldPracticeStruggleFact()) {
+            const strugglingFacts = AdaptiveLearning.getStrugglingFacts();
+            if (strugglingFacts.length > 0) {
+                // Pick one of the struggling facts (weighted towards worst)
+                const idx = Math.floor(Math.random() * Math.min(3, strugglingFacts.length));
+                const factKey = strugglingFacts[idx].key;
+                const [n1, n2] = factKey.split('x').map(Number);
 
-            // Reshuffle when we've gone through all problems
-            if (this.poolIndex === 0) {
-                this.shufflePool();
+                problem = {
+                    type: 'multiplication',
+                    num1: n1,
+                    num2: n2,
+                    answer: n1 * n2,
+                    display: { num1: n1, operator: '×', num2: n2 },
+                    key: factKey,
+                    isStrugglePractice: true // Mark as targeted practice
+                };
             }
+        }
 
-            // Check if this problem was recently shown
-            const problemKey = `${problem.display.num1}${problem.display.operator}${problem.display.num2}`;
-            if (!this.recentProblems.includes(problemKey)) {
-                // Add to recent problems
-                this.recentProblems.push(problemKey);
-                if (this.recentProblems.length > this.maxRecentProblems) {
-                    this.recentProblems.shift();
+        // If no struggle fact selected, use normal pool selection
+        if (!problem) {
+            let attempts = 0;
+            while (attempts < this.problemPool.length) {
+                // Get next problem from shuffled pool
+                problem = this.problemPool[this.poolIndex];
+                this.poolIndex = (this.poolIndex + 1) % this.problemPool.length;
+
+                // Reshuffle when we've gone through all problems
+                if (this.poolIndex === 0) {
+                    this.shufflePool();
                 }
-                break;
-            }
 
-            attempts++;
+                // Check if this problem was recently shown
+                const problemKey = `${problem.display.num1}${problem.display.operator}${problem.display.num2}`;
+                if (!this.recentProblems.includes(problemKey)) {
+                    // Add to recent problems
+                    this.recentProblems.push(problemKey);
+                    if (this.recentProblems.length > this.maxRecentProblems) {
+                        this.recentProblems.shift();
+                    }
+                    break;
+                }
+
+                attempts++;
+            }
         }
 
         // Convert to division if needed
@@ -688,31 +956,74 @@ const UI = {
 
     /**
      * Generate helpful explanation for wrong answer
+     * Uses research-based teaching strategies for struggling students
      */
     getHelpfulExplanation(problem, userAnswer) {
         const num1 = problem.display.num1;
         const num2 = problem.display.num2;
         const answer = problem.answer;
 
+        // Record the failure for adaptive learning
+        const factNum1 = problem.type === 'multiplication' ? num1 : answer;
+        const factNum2 = num2;
+        const failCount = AdaptiveLearning.recordFailure(factNum1, factNum2);
+
+        // Check if we should show a detailed mini-lesson (struggling)
+        if (AdaptiveLearning.shouldShowMiniLesson(factNum1, factNum2)) {
+            return this.getMiniLessonHTML(problem, failCount);
+        }
+
+        // Standard explanation
         let explanation = `<strong>The answer is ${answer}</strong><br>`;
 
         if (problem.type === 'multiplication') {
             // Generate skip counting hint
+            const smaller = Math.min(num1, num2);
+            const larger = Math.max(num1, num2);
             const skipCount = [];
-            for (let i = 1; i <= num1 && i <= 5; i++) {
-                skipCount.push(num2 * i);
+            for (let i = 1; i <= smaller && i <= 5; i++) {
+                skipCount.push(larger * i);
             }
-            if (num1 > 5) skipCount.push('...');
+            if (smaller > 5) skipCount.push('...');
             skipCount.push(answer);
 
             explanation += `${num1} × ${num2} = ${num1} groups of ${num2}<br>`;
-            explanation += `<span style="color: var(--text-muted)">Count by ${num2}s: ${skipCount.join(', ')}</span>`;
+            explanation += `<span style="color: var(--text-muted)">Count by ${larger}s: ${skipCount.join(', ')}</span>`;
         } else {
             explanation += `${num1} ÷ ${num2} = How many ${num2}s fit in ${num1}?<br>`;
             explanation += `<span style="color: var(--text-muted)">${num2} × ${answer} = ${num1}</span>`;
         }
 
         return explanation;
+    },
+
+    /**
+     * Generate a mini-lesson HTML for struggling facts
+     */
+    getMiniLessonHTML(problem, failCount) {
+        const lesson = TeachingStrategies.getMiniLesson(problem, failCount);
+
+        let html = `
+            <div class="mini-lesson">
+                <div class="lesson-header">
+                    <span class="lesson-icon">${lesson.icon}</span>
+                    <strong>${lesson.name}</strong>
+                </div>
+                <p class="lesson-explanation">${lesson.explanation}</p>
+                <div class="lesson-steps">
+        `;
+
+        for (const step of lesson.steps) {
+            html += `<div class="lesson-step">${step}</div>`;
+        }
+
+        html += `
+                </div>
+                <div class="lesson-highlight">${lesson.highlight}</div>
+            </div>
+        `;
+
+        return html;
     },
 
     /**
@@ -1009,6 +1320,12 @@ const Game = {
             }
 
             AudioManager.playCorrect();
+
+            // Adaptive learning: record success to reduce struggle tracking
+            const factNum1 = problem.type === 'multiplication' ? problem.display.num1 : problem.answer;
+            const factNum2 = problem.display.num2;
+            AdaptiveLearning.recordSuccess(factNum1, factNum2);
+
             this.checkAchievements();
             this.checkLevelUp();
         } else {

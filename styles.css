@@ -1180,3 +1180,77 @@ body.focus-mode .visual-area {
         display: none !important;
     }
 }
+
+/* ==========================================================================
+   Mini-Lesson Styles - Adaptive Teaching
+   ========================================================================== */
+.mini-lesson {
+    background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    text-align: left;
+    border: 2px solid var(--primary-color);
+    margin-top: var(--spacing-md);
+}
+
+.lesson-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-lg);
+    color: var(--primary-color);
+}
+
+.lesson-icon {
+    font-size: var(--font-size-xl);
+}
+
+.lesson-explanation {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-base);
+}
+
+.lesson-steps {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.lesson-step {
+    padding: var(--spacing-xs) 0;
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    border-bottom: 1px dashed var(--bg-accent);
+}
+
+.lesson-step:last-child {
+    border-bottom: none;
+}
+
+.lesson-highlight {
+    background-color: var(--success-bg);
+    color: var(--success-color);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: var(--font-size-lg);
+    text-align: center;
+}
+
+/* Responsive adjustments for mini-lessons */
+@media (max-width: 480px) {
+    .mini-lesson {
+        padding: var(--spacing-md);
+    }
+
+    .lesson-header {
+        font-size: var(--font-size-base);
+    }
+
+    .lesson-highlight {
+        font-size: var(--font-size-base);
+    }
+}
