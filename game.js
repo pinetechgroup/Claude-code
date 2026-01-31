@@ -240,36 +240,122 @@ const AudioManager = {
 // =============================================================================
 
 const MathEngine = {
+    // Track recent problems to avoid repetition
+    recentProblems: [],
+    maxRecentProblems: 8,
+    problemPool: [],
+    poolIndex: 0,
+
     /**
-     * Generate a new problem based on settings and adaptive difficulty
+     * Generate all possible problem combinations for the current settings
+     */
+    generateProblemPool() {
+        const tables = TableRanges[Settings.tableRange];
+        this.problemPool = [];
+
+        // Generate all unique combinations
+        for (let i = 0; i < tables.length; i++) {
+            for (let j = i; j < tables.length; j++) {
+                const num1 = tables[i];
+                const num2 = tables[j];
+
+                // Add multiplication problem
+                this.problemPool.push({
+                    type: 'multiplication',
+                    num1: num1,
+                    num2: num2,
+                    answer: num1 * num2,
+                    display: { num1, operator: '×', num2 },
+                    key: `${num1}x${num2}`
+                });
+
+                // Add reverse if different (e.g., 2×5 and 5×2)
+                if (num1 !== num2) {
+                    this.problemPool.push({
+                        type: 'multiplication',
+                        num1: num2,
+                        num2: num1,
+                        answer: num1 * num2,
+                        display: { num1: num2, operator: '×', num2: num1 },
+                        key: `${num2}x${num1}`
+                    });
+                }
+            }
+        }
+
+        // Shuffle the pool
+        this.shufflePool();
+        this.poolIndex = 0;
+    },
+
+    /**
+     * Fisher-Yates shuffle
+     */
+    shufflePool() {
+        for (let i = this.problemPool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.problemPool[i], this.problemPool[j]] = [this.problemPool[j], this.problemPool[i]];
+        }
+    },
+
+    /**
+     * Generate a new problem with better variety
      */
     generateProblem() {
-        const tables = TableRanges[Settings.tableRange];
         const isMultiplication = this.shouldDoMultiplication();
 
-        // Get a weighted random table (prioritize struggling facts)
-        const num1 = this.getWeightedNumber(tables);
-        const num2 = this.getWeightedNumber(tables);
+        // Regenerate pool if empty or settings changed
+        if (this.problemPool.length === 0) {
+            this.generateProblemPool();
+        }
 
-        if (isMultiplication) {
-            return {
-                type: 'multiplication',
-                num1: num1,
-                num2: num2,
-                answer: num1 * num2,
-                display: { num1, operator: '×', num2 },
-            };
-        } else {
-            // Division: answer ÷ num2 = num1
-            const product = num1 * num2;
+        // Find a problem that wasn't recently shown
+        let attempts = 0;
+        let problem = null;
+
+        while (attempts < this.problemPool.length) {
+            // Get next problem from shuffled pool
+            problem = this.problemPool[this.poolIndex];
+            this.poolIndex = (this.poolIndex + 1) % this.problemPool.length;
+
+            // Reshuffle when we've gone through all problems
+            if (this.poolIndex === 0) {
+                this.shufflePool();
+            }
+
+            // Check if this problem was recently shown
+            const problemKey = `${problem.display.num1}${problem.display.operator}${problem.display.num2}`;
+            if (!this.recentProblems.includes(problemKey)) {
+                // Add to recent problems
+                this.recentProblems.push(problemKey);
+                if (this.recentProblems.length > this.maxRecentProblems) {
+                    this.recentProblems.shift();
+                }
+                break;
+            }
+
+            attempts++;
+        }
+
+        // Convert to division if needed
+        if (!isMultiplication && problem.type === 'multiplication') {
+            const product = problem.num1 * problem.num2;
             return {
                 type: 'division',
                 num1: product,
-                num2: num2,
-                answer: num1,
-                display: { num1: product, operator: '÷', num2 },
+                num2: problem.num2,
+                answer: problem.num1,
+                display: { num1: product, operator: '÷', num2: problem.num2 },
             };
         }
+
+        return {
+            type: problem.type,
+            num1: problem.num1,
+            num2: problem.num2,
+            answer: problem.answer,
+            display: { ...problem.display },
+        };
     },
 
     shouldDoMultiplication() {
@@ -279,46 +365,12 @@ const MathEngine = {
     },
 
     /**
-     * Get a number weighted by past performance (spaced repetition)
-     * Facts the student struggles with appear more often
+     * Reset problem pool (call when settings change)
      */
-    getWeightedNumber(tables) {
-        // 70% chance to pick from struggling facts if any exist
-        if (Math.random() < 0.7) {
-            const strugglingFacts = this.getStrugglingFacts(tables);
-            if (strugglingFacts.length > 0) {
-                return strugglingFacts[Math.floor(Math.random() * strugglingFacts.length)];
-            }
-        }
-
-        // Otherwise random from available tables
-        return tables[Math.floor(Math.random() * tables.length)];
-    },
-
-    /**
-     * Find facts the student struggles with
-     */
-    getStrugglingFacts(tables) {
-        const struggling = [];
-
-        for (const table of tables) {
-            // Check all combinations with this table
-            for (const other of tables) {
-                const key = `${Math.min(table, other)}x${Math.max(table, other)}`;
-                const perf = GameState.factPerformance[key];
-
-                if (perf) {
-                    const accuracy = perf.correct / (perf.correct + perf.incorrect);
-                    // If accuracy < 70% or seen recently and got wrong
-                    if (accuracy < 0.7 || (perf.incorrect > 0 && Date.now() - perf.lastSeen < 60000)) {
-                        struggling.push(table);
-                        break;
-                    }
-                }
-            }
-        }
-
-        return struggling;
+    resetPool() {
+        this.problemPool = [];
+        this.recentProblems = [];
+        this.poolIndex = 0;
     },
 
     /**
@@ -1109,6 +1161,9 @@ const Game = {
         Settings.focusMode = DOM.focusModeToggle.checked;
         Settings.largeText = DOM.largeTextToggle.checked;
         Settings.highContrast = DOM.highContrastToggle.checked;
+
+        // Reset problem pool when settings change for fresh variety
+        MathEngine.resetPool();
 
         UI.applySettings();
         this.saveData();
