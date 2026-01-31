@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Math Adventure - Learn Multiplication & Division</title>
+    <style>
+/* Math Adventure - ADHD-Friendly Educational Math App */
+/* Optimized for 9-year-olds */
+
+:root {
+    --bg-primary: #F8F9FA;
+    --bg-secondary: #FFFFFF;
+    --bg-accent: #E9ECEF;
+    --text-primary: #212529;
+    --text-secondary: #6C757D;
+    --text-muted: #ADB5BD;
+    --multiply-color: #4A90D9;
+    --multiply-bg: #E3F2FD;
+    --divide-color: #5CB85C;
+    --divide-bg: #E8F5E9;
+    --success-color: #28A745;
+    --success-bg: #D4EDDA;
+    --error-color: #DC3545;
+    --error-bg: #F8D7DA;
+    --warning-color: #FFC107;
+    --warning-bg: #FFF3CD;
+    --primary-color: #4A90D9;
+    --primary-hover: #3A7BC8;
+    --secondary-color: #6C757D;
+    --gold-color: #FFD700;
+    --badge-color: #9B59B6;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
+    --font-family: 'Segoe UI', Arial, Verdana, sans-serif;
+    --font-size-sm: 14px;
+    --font-size-base: 18px;
+    --font-size-lg: 24px;
+    --font-size-xl: 32px;
+    --font-size-xxl: 48px;
+    --font-size-huge: 64px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --radius-round: 50%;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+}
+
+body.high-contrast {
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F0F0F0;
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --primary-color: #0056B3;
+}
+
+body.large-text {
+    --font-size-base: 22px;
+    --font-size-lg: 28px;
+    --font-size-xl: 40px;
+    --font-size-xxl: 56px;
+    --font-size-huge: 80px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+body.no-animations *, body.no-animations *::before, body.no-animations *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: var(--font-size-base); line-height: 1.5; }
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+#app { min-height: 100vh; display: flex; flex-direction: column; }
+
+.screen {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: var(--spacing-lg);
+}
+
+.screen.active { display: flex; }
+
+.welcome-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto;
+    gap: var(--spacing-xl);
+}
+
+.welcome-content h1 {
+    font-size: var(--font-size-xxl);
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.welcome-content .subtitle {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+}
+
+.player-setup {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.player-setup label {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+}
+
+.player-setup input {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-lg);
+    border: 2px solid var(--bg-accent);
+    border-radius: var(--radius-md);
+    text-align: center;
+    transition: border-color var(--transition-fast);
+}
+
+.player-setup input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: 48px;
+    min-width: 48px;
+}
+
+.btn:focus { outline: 3px solid var(--primary-color); outline-offset: 2px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background-color: var(--primary-color); color: white; }
+.btn-primary:hover:not(:disabled) { background-color: var(--primary-hover); transform: translateY(-1px); }
+.btn-secondary { background-color: var(--bg-accent); color: var(--text-primary); }
+.btn-secondary:hover:not(:disabled) { background-color: var(--secondary-color); color: white; }
+.btn-large { padding: var(--spacing-lg) var(--spacing-xxl); font-size: var(--font-size-lg); min-height: 60px; }
+.btn-icon { padding: var(--spacing-sm); background: transparent; color: var(--text-secondary); font-size: var(--font-size-lg); }
+.btn-icon:hover { color: var(--text-primary); background-color: var(--bg-accent); }
+.btn-hint { background-color: var(--warning-bg); color: var(--text-primary); border: 2px dashed var(--warning-color); }
+.btn-hint:hover { background-color: var(--warning-color); }
+
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.player-info { display: flex; align-items: center; gap: var(--spacing-md); }
+#player-display-name { font-weight: 600; font-size: var(--font-size-base); }
+.level-badge {
+    background-color: var(--badge-color);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-round);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+.stats { display: flex; gap: var(--spacing-lg); }
+.stat { display: flex; align-items: center; gap: var(--spacing-xs); font-size: var(--font-size-lg); font-weight: 700; }
+.stat-icon { font-size: var(--font-size-lg); }
+.star-icon { color: var(--gold-color); }
+.fire-icon { color: #FF6B35; }
+.top-actions { display: flex; gap: var(--spacing-sm); }
+
+.progress-container { display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); }
+.progress-bar { flex: 1; height: 12px; background-color: var(--bg-accent); border-radius: var(--radius-round); overflow: hidden; }
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--badge-color));
+    border-radius: var(--radius-round);
+    transition: width var(--transition-normal);
+    width: 0%;
+}
+#progress-text { font-size: var(--font-size-sm); color: var(--text-secondary); min-width: 60px; text-align: right; }
+
+.problem-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    padding: var(--spacing-xl);
+}
+
+.visual-area {
+    width: 100%;
+    max-width: 500px;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.visual-area.hidden { display: none; }
+
+.array-grid { display: grid; gap: 6px; padding: var(--spacing-md); }
+.array-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-round);
+    background-color: var(--primary-color);
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+.array-dot.multiply { background-color: var(--multiply-color); }
+.array-dot.divide { background-color: var(--divide-color); }
+.array-dot.highlight { transform: scale(1.2); box-shadow: 0 0 8px var(--primary-color); }
+
+.groups-container { display: flex; flex-wrap: wrap; gap: var(--spacing-lg); justify-content: center; }
+.group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: var(--spacing-md);
+    background-color: var(--bg-accent);
+    border-radius: var(--radius-md);
+    max-width: 100px;
+}
+.group-item { width: 20px; height: 20px; border-radius: var(--radius-sm); background-color: var(--primary-color); }
+
+.problem-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-xl);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.problem-number { font-size: var(--font-size-huge); font-weight: 700; color: var(--text-primary); min-width: 80px; text-align: center; }
+.problem-operator { font-size: var(--font-size-xxl); font-weight: 700; padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--radius-md); }
+.problem-operator.multiply { color: var(--multiply-color); background-color: var(--multiply-bg); }
+.problem-operator.divide { color: var(--divide-color); background-color: var(--divide-bg); }
+.equals { font-size: var(--font-size-xxl); color: var(--text-secondary); }
+.answer-box { font-size: var(--font-size-huge); font-weight: 700; color: var(--primary-color); min-width: 100px; text-align: center; }
+
+.answer-section { display: flex; gap: var(--spacing-md); align-items: center; }
+.answer-input {
+    width: 150px;
+    padding: var(--spacing-md);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    text-align: center;
+    border: 3px solid var(--bg-accent);
+    border-radius: var(--radius-md);
+    transition: border-color var(--transition-fast);
+}
+.answer-input:focus { outline: none; border-color: var(--primary-color); }
+.answer-input.correct { border-color: var(--success-color); background-color: var(--success-bg); }
+.answer-input.incorrect { border-color: var(--error-color); background-color: var(--error-bg); animation: shake 0.5s ease; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}
+
+.feedback-area { text-align: center; padding: var(--spacing-lg); border-radius: var(--radius-lg); max-width: 400px; }
+.feedback-area.hidden { display: none; }
+.feedback-area.success { background-color: var(--success-bg); }
+.feedback-area.error { background-color: var(--error-bg); }
+.feedback-message { font-size: var(--font-size-lg); font-weight: 700; margin-bottom: var(--spacing-sm); }
+.feedback-area.success .feedback-message { color: var(--success-color); }
+.feedback-area.error .feedback-message { color: var(--error-color); }
+.feedback-explanation { font-size: var(--font-size-base); color: var(--text-secondary); }
+
+.hint-section { display: flex; justify-content: center; padding: var(--spacing-lg); }
+
+.break-content, .complete-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: var(--spacing-xl);
+    max-width: 500px;
+    margin: 0 auto;
+}
+.break-content h2, .complete-content h2 { font-size: var(--font-size-xxl); color: var(--primary-color); }
+.complete-content h2 { color: var(--success-color); }
+.break-activity { padding: var(--spacing-xl); background-color: var(--bg-secondary); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.break-timer { font-size: var(--font-size-xxl); font-weight: 700; color: var(--text-secondary); }
+
+.session-stats { display: flex; gap: var(--spacing-lg); flex-wrap: wrap; justify-content: center; }
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    min-width: 120px;
+}
+.stat-card .stat-value { font-size: var(--font-size-xxl); font-weight: 700; color: var(--primary-color); }
+.stat-card .stat-label { font-size: var(--font-size-sm); color: var(--text-secondary); }
+
+.badges-earned { padding: var(--spacing-lg); background-color: var(--bg-secondary); border-radius: var(--radius-lg); }
+.badges-earned h3 { margin-bottom: var(--spacing-md); color: var(--badge-color); }
+.badge-list { display: flex; gap: var(--spacing-md); flex-wrap: wrap; justify-content: center; }
+.badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, var(--gold-color), #FFA500);
+    border-radius: var(--radius-md);
+    min-width: 80px;
+}
+.badge-icon { font-size: var(--font-size-xl); }
+.badge-name { font-size: var(--font-size-sm); font-weight: 600; }
+
+.complete-actions { display: flex; gap: var(--spacing-md); flex-wrap: wrap; justify-content: center; }
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+    z-index: 1000;
+}
+.modal.hidden { display: none; }
+.modal-content {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.modal-small { max-width: 350px; text-align: center; padding: var(--spacing-xl); }
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--bg-accent);
+}
+.modal-header h2 { font-size: var(--font-size-lg); }
+.modal-body { padding: var(--spacing-lg); }
+.modal-footer { padding: var(--spacing-lg); border-top: 1px solid var(--bg-accent); display: flex; justify-content: flex-end; }
+
+.setting-group { margin-bottom: var(--spacing-xl); }
+.setting-group h3 {
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--bg-accent);
+}
+.setting-option { display: flex; align-items: center; justify-content: space-between; padding: var(--spacing-sm) 0; }
+.setting-option label { font-size: var(--font-size-base); }
+.setting-option select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-base);
+    border: 2px solid var(--bg-accent);
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-secondary);
+}
+
+.toggle-option input[type="checkbox"] {
+    width: 48px;
+    height: 24px;
+    appearance: none;
+    background-color: var(--bg-accent);
+    border-radius: var(--radius-round);
+    position: relative;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+.toggle-option input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-round);
+    background-color: white;
+    top: 2px;
+    left: 2px;
+    transition: transform var(--transition-fast);
+}
+.toggle-option input[type="checkbox"]:checked { background-color: var(--primary-color); }
+.toggle-option input[type="checkbox"]:checked::before { transform: translateX(24px); }
+
+.pause-actions { display: flex; flex-direction: column; gap: var(--spacing-md); margin-top: var(--spacing-xl); }
+
+.toast {
+    position: fixed;
+    bottom: var(--spacing-xl);
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--gold-color), #FFA500);
+    color: var(--text-primary);
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 1100;
+    animation: slideUp 0.3s ease;
+}
+.toast.hidden { display: none; }
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.toast-content { display: flex; align-items: center; gap: var(--spacing-md); }
+.toast-icon { font-size: var(--font-size-xl); }
+.toast-text { display: flex; flex-direction: column; }
+.toast-text strong { font-size: var(--font-size-base); }
+.toast-text span { font-size: var(--font-size-sm); }
+
+body.focus-mode .top-bar { background: transparent; box-shadow: none; }
+body.focus-mode .player-info, body.focus-mode .stats { display: none; }
+body.focus-mode .progress-container { display: none; }
+body.focus-mode .hint-section { display: none; }
+body.focus-mode .visual-area { box-shadow: none; background: transparent; }
+
+@media (max-width: 768px) {
+    :root { --font-size-huge: 48px; --font-size-xxl: 36px; --font-size-xl: 28px; }
+    .top-bar { flex-wrap: wrap; gap: var(--spacing-sm); }
+    .stats { order: 3; width: 100%; justify-content: center; }
+    .problem-display { flex-wrap: wrap; gap: var(--spacing-md); }
+    .problem-number { min-width: 60px; }
+    .session-stats { flex-direction: column; }
+    .complete-actions { flex-direction: column; width: 100%; }
+    .complete-actions .btn { width: 100%; }
+}
+
+@media (max-width: 480px) {
+    :root { --font-size-huge: 36px; --font-size-xxl: 28px; --font-size-xl: 24px; --spacing-xl: 24px; }
+    .screen { padding: var(--spacing-md); }
+    .array-dot { width: 18px; height: 18px; }
+    .answer-input { width: 120px; }
+}
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="welcome-screen" class="screen active">
+            <div class="welcome-content">
+                <h1>Math Adventure</h1>
+                <p class="subtitle">Learn Multiplication & Division</p>
+                <div class="player-setup">
+                    <label for="player-name">What's your name?</label>
+                    <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+                </div>
+                <button id="start-btn" class="btn btn-primary btn-large">Start Learning!</button>
+                <button id="settings-btn-welcome" class="btn btn-secondary">
+                    <span class="icon">&#9881;</span> Settings
+                </button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <header class="top-bar">
+                <div class="player-info">
+                    <span id="player-display-name">Player</span>
+                    <span class="level-badge">Level <span id="current-level">1</span></span>
+                </div>
+                <div class="stats">
+                    <div class="stat"><span class="stat-icon star-icon">&#9733;</span><span id="points-display">0</span></div>
+                    <div class="stat"><span class="stat-icon fire-icon">&#128293;</span><span id="streak-display">0</span></div>
+                </div>
+                <div class="top-actions">
+                    <button id="pause-btn" class="btn btn-icon" title="Pause">&#10074;&#10074;</button>
+                    <button id="settings-btn-game" class="btn btn-icon" title="Settings">&#9881;</button>
+                </div>
+            </header>
+
+            <div class="progress-container">
+                <div class="progress-bar"><div id="session-progress" class="progress-fill"></div></div>
+                <span id="progress-text">0 / 10</span>
+            </div>
+
+            <main class="problem-area">
+                <div id="visual-area" class="visual-area"></div>
+                <div class="problem-display">
+                    <span id="num1" class="problem-number">5</span>
+                    <span id="operator" class="problem-operator multiply">&times;</span>
+                    <span id="num2" class="problem-number">3</span>
+                    <span class="equals">=</span>
+                    <span id="answer-display" class="answer-box">?</span>
+                </div>
+                <div class="answer-section">
+                    <input type="number" id="answer-input" class="answer-input" placeholder="?" min="0" max="999" autocomplete="off" inputmode="numeric">
+                    <button id="submit-btn" class="btn btn-primary">Check</button>
+                </div>
+                <div id="feedback-area" class="feedback-area hidden">
+                    <div id="feedback-message" class="feedback-message"></div>
+                    <div id="feedback-explanation" class="feedback-explanation"></div>
+                </div>
+            </main>
+
+            <div class="hint-section">
+                <button id="hint-btn" class="btn btn-hint"><span class="icon">&#128161;</span> Need a hint?</button>
+            </div>
+        </div>
+
+        <div id="break-screen" class="screen">
+            <div class="break-content">
+                <h2>Time for a Break!</h2>
+                <p>You've been working hard! Take a moment to rest your eyes.</p>
+                <div class="break-activity"><p>Try this: Stand up and stretch your arms above your head!</p></div>
+                <div class="break-timer"><span id="break-countdown">60</span>s</div>
+                <button id="skip-break-btn" class="btn btn-secondary">I'm Ready to Continue</button>
+            </div>
+        </div>
+
+        <div id="complete-screen" class="screen">
+            <div class="complete-content">
+                <h2 id="complete-title">Great Job!</h2>
+                <div class="session-stats">
+                    <div class="stat-card"><span class="stat-value" id="session-correct">0</span><span class="stat-label">Correct</span></div>
+                    <div class="stat-card"><span class="stat-value" id="session-accuracy">0%</span><span class="stat-label">Accuracy</span></div>
+                    <div class="stat-card"><span class="stat-value" id="session-points">0</span><span class="stat-label">Points Earned</span></div>
+                </div>
+                <div id="badges-earned" class="badges-earned hidden">
+                    <h3>Badges Earned!</h3>
+                    <div id="new-badges" class="badge-list"></div>
+                </div>
+                <div class="complete-actions">
+                    <button id="continue-btn" class="btn btn-primary btn-large">Keep Going!</button>
+                    <button id="finish-btn" class="btn btn-secondary">Finish for Now</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button id="close-settings" class="btn btn-icon">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-group">
+                        <h3>Learning Mode</h3>
+                        <div class="setting-option">
+                            <label for="mode-select">Practice Type</label>
+                            <select id="mode-select">
+                                <option value="multiplication" selected>Multiplication Only</option>
+                                <option value="division">Division Only</option>
+                                <option value="mixed">Mixed Practice</option>
+                            </select>
+                        </div>
+                        <div class="setting-option">
+                            <label for="table-select">Times Tables</label>
+                            <select id="table-select">
+                                <option value="beginner">Beginner (2, 5, 10)</option>
+                                <option value="easy" selected>Easy (1, 2, 5, 10)</option>
+                                <option value="medium">Medium (2-6, 10)</option>
+                                <option value="hard">Hard (2-9)</option>
+                                <option value="expert">Expert (2-12)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>Session Settings</h3>
+                        <div class="setting-option">
+                            <label for="session-length">Problems per Session</label>
+                            <select id="session-length">
+                                <option value="5">5 (Quick)</option>
+                                <option value="10" selected>10 (Standard)</option>
+                                <option value="15">15 (Extended)</option>
+                                <option value="20">20 (Challenge)</option>
+                            </select>
+                        </div>
+                        <div class="setting-option">
+                            <label for="break-interval">Break Reminder</label>
+                            <select id="break-interval">
+                                <option value="0">Off</option>
+                                <option value="10" selected>Every 10 minutes</option>
+                                <option value="15">Every 15 minutes</option>
+                                <option value="20">Every 20 minutes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>Visual Settings</h3>
+                        <div class="setting-option toggle-option">
+                            <label for="show-visuals">Show Visual Helpers</label>
+                            <input type="checkbox" id="show-visuals" checked>
+                        </div>
+                        <div class="setting-option toggle-option">
+                            <label for="animations-enabled">Enable Animations</label>
+                            <input type="checkbox" id="animations-enabled" checked>
+                        </div>
+                        <div class="setting-option toggle-option">
+                            <label for="sounds-enabled">Enable Sounds</label>
+                            <input type="checkbox" id="sounds-enabled" checked>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>Accessibility</h3>
+                        <div class="setting-option toggle-option">
+                            <label for="focus-mode">Focus Mode (Minimal UI)</label>
+                            <input type="checkbox" id="focus-mode">
+                        </div>
+                        <div class="setting-option toggle-option">
+                            <label for="large-text">Large Text</label>
+                            <input type="checkbox" id="large-text">
+                        </div>
+                        <div class="setting-option toggle-option">
+                            <label for="high-contrast">High Contrast</label>
+                            <input type="checkbox" id="high-contrast">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="save-settings" class="btn btn-primary">Save Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="pause-modal" class="modal hidden">
+            <div class="modal-content modal-small">
+                <h2>Game Paused</h2>
+                <p>Take your time!</p>
+                <div class="pause-actions">
+                    <button id="resume-btn" class="btn btn-primary btn-large">Resume</button>
+                    <button id="quit-btn" class="btn btn-secondary">Quit Session</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="achievement-toast" class="toast hidden">
+            <div class="toast-content">
+                <span class="toast-icon">&#127942;</span>
+                <div class="toast-text">
+                    <strong id="toast-title">Achievement!</strong>
+                    <span id="toast-message"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// Math Adventure - Game Logic (Optimized for 9-year-olds)
+
+const GameState = {
+    playerName: '', level: 1, totalPoints: 0, totalCorrect: 0, totalAttempts: 0,
+    sessionActive: false, sessionProblems: 0, sessionCorrect: 0, sessionPoints: 0,
+    currentProblem: null, problemsCompleted: 0, currentStreak: 0, bestStreak: 0,
+    sessionStartTime: null, lastBreakTime: null, badges: [], newBadges: [],
+    factPerformance: {},
+};
+
+// Defaults tuned for 9-year-old
+const Settings = {
+    mode: 'multiplication', // Start with multiplication - easier for 9-year-olds
+    tableRange: 'easy', // 1, 2, 5, 10 - good starting point
+    sessionLength: 10,
+    breakInterval: 10,
+    showVisuals: true,
+    animationsEnabled: true,
+    soundsEnabled: true,
+    focusMode: false,
+    largeText: false,
+    highContrast: false,
+};
+
+const TableRanges = {
+    beginner: [2, 5, 10],
+    easy: [1, 2, 5, 10],
+    medium: [2, 3, 4, 5, 6, 10],
+    hard: [2, 3, 4, 5, 6, 7, 8, 9],
+    expert: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+};
+
+const Badges = {
+    firstProblem: { id: 'firstProblem', name: 'First Step', icon: '&#127775;', description: 'Complete your first problem' },
+    streak5: { id: 'streak5', name: 'On Fire!', icon: '&#128293;', description: 'Get 5 correct in a row' },
+    streak10: { id: 'streak10', name: 'Unstoppable', icon: '&#9889;', description: 'Get 10 correct in a row' },
+    perfectSession: { id: 'perfectSession', name: 'Perfect!', icon: '&#127942;', description: 'Complete a session with 100% accuracy' },
+    level5: { id: 'level5', name: 'Rising Star', icon: '&#11088;', description: 'Reach level 5' },
+    level10: { id: 'level10', name: 'Math Wizard', icon: '&#129497;', description: 'Reach level 10' },
+    points100: { id: 'points100', name: 'Century', icon: '&#128175;', description: 'Earn 100 points in one session' },
+};
+
+const CorrectMessages = ["Excellent!", "Great job!", "You got it!", "Perfect!", "Awesome!", "Well done!", "Fantastic!", "Super!", "Amazing!", "Brilliant!"];
+const EncouragingMessages = ["Almost there!", "Keep trying!", "You can do it!", "Good effort!", "Don't give up!", "Try again!"];
+
+const DOM = {};
+
+function initDOM() {
+    DOM.welcomeScreen = document.getElementById('welcome-screen');
+    DOM.gameScreen = document.getElementById('game-screen');
+    DOM.breakScreen = document.getElementById('break-screen');
+    DOM.completeScreen = document.getElementById('complete-screen');
+    DOM.playerNameInput = document.getElementById('player-name');
+    DOM.startBtn = document.getElementById('start-btn');
+    DOM.settingsBtnWelcome = document.getElementById('settings-btn-welcome');
+    DOM.playerDisplayName = document.getElementById('player-display-name');
+    DOM.currentLevel = document.getElementById('current-level');
+    DOM.pointsDisplay = document.getElementById('points-display');
+    DOM.streakDisplay = document.getElementById('streak-display');
+    DOM.sessionProgress = document.getElementById('session-progress');
+    DOM.progressText = document.getElementById('progress-text');
+    DOM.visualArea = document.getElementById('visual-area');
+    DOM.num1 = document.getElementById('num1');
+    DOM.operator = document.getElementById('operator');
+    DOM.num2 = document.getElementById('num2');
+    DOM.answerDisplay = document.getElementById('answer-display');
+    DOM.answerInput = document.getElementById('answer-input');
+    DOM.submitBtn = document.getElementById('submit-btn');
+    DOM.feedbackArea = document.getElementById('feedback-area');
+    DOM.feedbackMessage = document.getElementById('feedback-message');
+    DOM.feedbackExplanation = document.getElementById('feedback-explanation');
+    DOM.hintBtn = document.getElementById('hint-btn');
+    DOM.pauseBtn = document.getElementById('pause-btn');
+    DOM.settingsBtnGame = document.getElementById('settings-btn-game');
+    DOM.breakCountdown = document.getElementById('break-countdown');
+    DOM.skipBreakBtn = document.getElementById('skip-break-btn');
+    DOM.completeTitle = document.getElementById('complete-title');
+    DOM.sessionCorrectDisplay = document.getElementById('session-correct');
+    DOM.sessionAccuracy = document.getElementById('session-accuracy');
+    DOM.sessionPointsDisplay = document.getElementById('session-points');
+    DOM.badgesEarned = document.getElementById('badges-earned');
+    DOM.newBadges = document.getElementById('new-badges');
+    DOM.continueBtn = document.getElementById('continue-btn');
+    DOM.finishBtn = document.getElementById('finish-btn');
+    DOM.settingsModal = document.getElementById('settings-modal');
+    DOM.closeSettings = document.getElementById('close-settings');
+    DOM.saveSettings = document.getElementById('save-settings');
+    DOM.pauseModal = document.getElementById('pause-modal');
+    DOM.resumeBtn = document.getElementById('resume-btn');
+    DOM.quitBtn = document.getElementById('quit-btn');
+    DOM.modeSelect = document.getElementById('mode-select');
+    DOM.tableSelect = document.getElementById('table-select');
+    DOM.sessionLengthSelect = document.getElementById('session-length');
+    DOM.breakIntervalSelect = document.getElementById('break-interval');
+    DOM.showVisualsToggle = document.getElementById('show-visuals');
+    DOM.animationsToggle = document.getElementById('animations-enabled');
+    DOM.soundsToggle = document.getElementById('sounds-enabled');
+    DOM.focusModeToggle = document.getElementById('focus-mode');
+    DOM.largeTextToggle = document.getElementById('large-text');
+    DOM.highContrastToggle = document.getElementById('high-contrast');
+    DOM.achievementToast = document.getElementById('achievement-toast');
+    DOM.toastTitle = document.getElementById('toast-title');
+    DOM.toastMessage = document.getElementById('toast-message');
+}
+
+const AudioManager = {
+    context: null,
+    init() { try { this.context = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} },
+    playTone(frequency, duration, type = 'sine') {
+        if (!Settings.soundsEnabled || !this.context) return;
+        const osc = this.context.createOscillator();
+        const gain = this.context.createGain();
+        osc.connect(gain); gain.connect(this.context.destination);
+        osc.frequency.value = frequency; osc.type = type;
+        gain.gain.setValueAtTime(0.3, this.context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.context.currentTime + duration);
+        osc.start(this.context.currentTime); osc.stop(this.context.currentTime + duration);
+    },
+    playCorrect() { this.playTone(523.25, 0.1); setTimeout(() => this.playTone(659.25, 0.1), 100); setTimeout(() => this.playTone(783.99, 0.15), 200); },
+    playIncorrect() { this.playTone(200, 0.3, 'triangle'); },
+    playLevelUp() { [523.25, 587.33, 659.25, 783.99, 880].forEach((f, i) => setTimeout(() => this.playTone(f, 0.15), i * 100)); },
+    playAchievement() { [659.25, 783.99, 987.77, 1174.66].forEach((f, i) => setTimeout(() => this.playTone(f, 0.2), i * 150)); },
+};
+
+const MathEngine = {
+    generateProblem() {
+        const tables = TableRanges[Settings.tableRange];
+        const isMultiplication = Settings.mode === 'multiplication' ? true : Settings.mode === 'division' ? false : Math.random() < 0.5;
+        const num1 = this.getWeightedNumber(tables);
+        const num2 = this.getWeightedNumber(tables);
+        if (isMultiplication) return { type: 'multiplication', num1, num2, answer: num1 * num2, display: { num1, operator: '×', num2 } };
+        const product = num1 * num2;
+        return { type: 'division', num1: product, num2, answer: num1, display: { num1: product, operator: '÷', num2 } };
+    },
+    getWeightedNumber(tables) {
+        if (Math.random() < 0.7) {
+            const struggling = this.getStrugglingFacts(tables);
+            if (struggling.length > 0) return struggling[Math.floor(Math.random() * struggling.length)];
+        }
+        return tables[Math.floor(Math.random() * tables.length)];
+    },
+    getStrugglingFacts(tables) {
+        const struggling = [];
+        for (const t of tables) {
+            for (const o of tables) {
+                const key = `${Math.min(t, o)}x${Math.max(t, o)}`;
+                const p = GameState.factPerformance[key];
+                if (p && (p.correct / (p.correct + p.incorrect) < 0.7 || (p.incorrect > 0 && Date.now() - p.lastSeen < 60000))) {
+                    struggling.push(t); break;
+                }
+            }
+        }
+        return struggling;
+    },
+    recordFactPerformance(num1, num2, correct) {
+        const key = `${Math.min(num1, num2)}x${Math.max(num1, num2)}`;
+        if (!GameState.factPerformance[key]) GameState.factPerformance[key] = { correct: 0, incorrect: 0, lastSeen: 0 };
+        const f = GameState.factPerformance[key];
+        f.lastSeen = Date.now();
+        correct ? f.correct++ : f.incorrect++;
+    },
+    calculatePoints(problem, time) {
+        let pts = 10;
+        if (GameState.currentStreak >= 3) pts += Math.min(GameState.currentStreak, 10);
+        if (time < 5000) pts += 5;
+        const max = Math.max(problem.num1, problem.num2);
+        if (max >= 7) pts += 3;
+        if (max >= 10) pts += 5;
+        return pts;
+    },
+};
+
+const Visualizer = {
+    render(problem) {
+        if (!Settings.showVisuals) { DOM.visualArea.classList.add('hidden'); return; }
+        DOM.visualArea.classList.remove('hidden');
+        DOM.visualArea.innerHTML = '';
+        problem.type === 'multiplication' ? this.renderArray(problem.display.num1, problem.display.num2) : this.renderDivisionGroups(problem.display.num1, problem.display.num2);
+    },
+    renderArray(rows, cols) {
+        const max = 8, dRows = Math.min(rows, max), dCols = Math.min(cols, max);
+        const container = document.createElement('div');
+        container.className = 'array-grid';
+        container.style.gridTemplateColumns = `repeat(${dCols}, 24px)`;
+        for (let i = 0; i < dRows * dCols; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'array-dot multiply';
+            if (Settings.animationsEnabled) {
+                dot.style.opacity = '0'; dot.style.transform = 'scale(0)';
+                setTimeout(() => { dot.style.opacity = '1'; dot.style.transform = 'scale(1)'; }, i * 30);
+            }
+            container.appendChild(dot);
+        }
+        const label = document.createElement('div');
+        label.style.cssText = 'margin-top:12px;color:var(--text-secondary);font-size:var(--font-size-sm)';
+        label.textContent = `${rows} rows × ${cols} columns` + (rows > max || cols > max ? ' (showing part)' : '');
+        DOM.visualArea.appendChild(container);
+        DOM.visualArea.appendChild(label);
+    },
+    renderDivisionGroups(total, divisor) {
+        const result = Math.floor(total / divisor), maxG = 6, maxP = 8;
+        const dGroups = Math.min(result, maxG), dPer = Math.min(divisor, maxP);
+        const container = document.createElement('div');
+        container.className = 'groups-container';
+        for (let g = 0; g < dGroups; g++) {
+            const group = document.createElement('div');
+            group.className = 'group';
+            for (let i = 0; i < dPer; i++) {
+                const item = document.createElement('div');
+                item.className = 'group-item';
+                if (Settings.animationsEnabled) { item.style.opacity = '0'; setTimeout(() => { item.style.opacity = '1'; }, (g * dPer + i) * 50); }
+                group.appendChild(item);
+            }
+            container.appendChild(group);
+        }
+        const label = document.createElement('div');
+        label.style.cssText = 'margin-top:12px;color:var(--text-secondary);font-size:var(--font-size-sm)';
+        label.textContent = result > maxG ? `Showing ${dGroups} of ${result} groups` : `${total} items ÷ ${divisor} per group = ? groups`;
+        DOM.visualArea.appendChild(container);
+        DOM.visualArea.appendChild(label);
+    },
+    showHint(problem) {
+        if (problem.type !== 'multiplication') return;
+        const dots = DOM.visualArea.querySelectorAll('.array-dot');
+        const cols = problem.display.num2;
+        let row = 0;
+        const highlight = () => {
+            if (row >= problem.display.num1) return;
+            for (let c = 0; c < cols; c++) { const d = dots[row * cols + c]; if (d) d.classList.add('highlight'); }
+            row++;
+            if (row < problem.display.num1) setTimeout(highlight, 500);
+        };
+        highlight();
+    },
+};
+
+const UI = {
+    showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); },
+    displayProblem(p) {
+        DOM.num1.textContent = p.display.num1;
+        DOM.num2.textContent = p.display.num2;
+        DOM.answerDisplay.textContent = '?';
+        DOM.operator.textContent = p.display.operator;
+        DOM.operator.className = 'problem-operator ' + (p.type === 'multiplication' ? 'multiply' : 'divide');
+        DOM.answerInput.value = '';
+        DOM.answerInput.className = 'answer-input';
+        DOM.answerInput.focus();
+        DOM.feedbackArea.classList.add('hidden');
+        Visualizer.render(p);
+    },
+    showFeedback(correct, p, ans) {
+        DOM.feedbackArea.classList.remove('hidden', 'success', 'error');
+        DOM.feedbackArea.classList.add(correct ? 'success' : 'error');
+        if (correct) {
+            DOM.feedbackMessage.textContent = CorrectMessages[Math.floor(Math.random() * CorrectMessages.length)];
+            DOM.feedbackExplanation.textContent = `${p.display.num1} ${p.display.operator} ${p.display.num2} = ${p.answer}`;
+            DOM.answerInput.classList.add('correct');
+            DOM.answerDisplay.textContent = p.answer;
+        } else {
+            DOM.feedbackMessage.textContent = EncouragingMessages[Math.floor(Math.random() * EncouragingMessages.length)];
+            const exp = p.type === 'multiplication' ? `${p.display.num1} groups of ${p.display.num2} equals ${p.answer}.` : `${p.display.num1} divided into groups of ${p.display.num2} equals ${p.answer}.`;
+            DOM.feedbackExplanation.textContent = `The answer is ${p.answer}. ${exp}`;
+            DOM.answerInput.classList.add('incorrect');
+        }
+    },
+    updateProgress() {
+        DOM.sessionProgress.style.width = `${(GameState.problemsCompleted / Settings.sessionLength) * 100}%`;
+        DOM.progressText.textContent = `${GameState.problemsCompleted} / ${Settings.sessionLength}`;
+    },
+    updateStats() {
+        DOM.pointsDisplay.textContent = GameState.totalPoints;
+        DOM.streakDisplay.textContent = GameState.currentStreak;
+        DOM.currentLevel.textContent = GameState.level;
+    },
+    showAchievement(badge) {
+        DOM.toastTitle.textContent = badge.name;
+        DOM.toastMessage.textContent = badge.description;
+        DOM.achievementToast.classList.remove('hidden');
+        AudioManager.playAchievement();
+        setTimeout(() => DOM.achievementToast.classList.add('hidden'), 3000);
+    },
+    applySettings() {
+        document.body.classList.toggle('no-animations', !Settings.animationsEnabled);
+        document.body.classList.toggle('focus-mode', Settings.focusMode);
+        document.body.classList.toggle('large-text', Settings.largeText);
+        document.body.classList.toggle('high-contrast', Settings.highContrast);
+    },
+};
+
+const Game = {
+    problemStartTime: null, breakTimer: null, breakCheckInterval: null,
+    init() { initDOM(); this.loadSavedData(); this.bindEvents(); UI.applySettings(); AudioManager.init(); },
+    loadSavedData() {
+        try {
+            const state = localStorage.getItem('mathAdventure_state');
+            const settings = localStorage.getItem('mathAdventure_settings');
+            if (state) Object.assign(GameState, JSON.parse(state));
+            if (settings) { Object.assign(Settings, JSON.parse(settings)); this.populateSettingsUI(); }
+        } catch (e) {}
+    },
+    saveData() {
+        try {
+            localStorage.setItem('mathAdventure_state', JSON.stringify({
+                playerName: GameState.playerName, level: GameState.level, totalPoints: GameState.totalPoints,
+                totalCorrect: GameState.totalCorrect, totalAttempts: GameState.totalAttempts, bestStreak: GameState.bestStreak,
+                badges: GameState.badges, factPerformance: GameState.factPerformance,
+            }));
+            localStorage.setItem('mathAdventure_settings', JSON.stringify(Settings));
+        } catch (e) {}
+    },
+    bindEvents() {
+        DOM.startBtn.addEventListener('click', () => this.startGame());
+        DOM.playerNameInput.addEventListener('keypress', e => { if (e.key === 'Enter') this.startGame(); });
+        DOM.settingsBtnWelcome.addEventListener('click', () => this.openSettings());
+        DOM.submitBtn.addEventListener('click', () => this.submitAnswer());
+        DOM.answerInput.addEventListener('keypress', e => { if (e.key === 'Enter') this.submitAnswer(); });
+        DOM.hintBtn.addEventListener('click', () => Visualizer.showHint(GameState.currentProblem));
+        DOM.pauseBtn.addEventListener('click', () => DOM.pauseModal.classList.remove('hidden'));
+        DOM.settingsBtnGame.addEventListener('click', () => this.openSettings());
+        DOM.skipBreakBtn.addEventListener('click', () => this.skipBreak());
+        DOM.continueBtn.addEventListener('click', () => this.continueSession());
+        DOM.finishBtn.addEventListener('click', () => { UI.showScreen('welcome-screen'); DOM.playerNameInput.value = GameState.playerName; });
+        DOM.closeSettings.addEventListener('click', () => DOM.settingsModal.classList.add('hidden'));
+        DOM.saveSettings.addEventListener('click', () => this.saveSettings());
+        DOM.resumeBtn.addEventListener('click', () => { DOM.pauseModal.classList.add('hidden'); DOM.answerInput.focus(); });
+        DOM.quitBtn.addEventListener('click', () => { DOM.pauseModal.classList.add('hidden'); this.endSession(); });
+        DOM.settingsModal.addEventListener('click', e => { if (e.target === DOM.settingsModal) DOM.settingsModal.classList.add('hidden'); });
+        DOM.pauseModal.addEventListener('click', e => { if (e.target === DOM.pauseModal) { DOM.pauseModal.classList.add('hidden'); DOM.answerInput.focus(); } });
+    },
+    startGame() {
+        GameState.playerName = DOM.playerNameInput.value.trim() || 'Player';
+        DOM.playerDisplayName.textContent = GameState.playerName;
+        GameState.sessionActive = true; GameState.sessionProblems = 0; GameState.sessionCorrect = 0;
+        GameState.sessionPoints = 0; GameState.problemsCompleted = 0; GameState.currentStreak = 0;
+        GameState.newBadges = []; GameState.sessionStartTime = Date.now(); GameState.lastBreakTime = Date.now();
+        UI.updateStats(); UI.updateProgress(); UI.showScreen('game-screen');
+        if (Settings.breakInterval > 0) this.breakCheckInterval = setInterval(() => this.checkForBreak(), 60000);
+        this.nextProblem(); this.saveData();
+    },
+    nextProblem() {
+        GameState.currentProblem = MathEngine.generateProblem();
+        this.problemStartTime = Date.now();
+        UI.displayProblem(GameState.currentProblem);
+    },
+    submitAnswer() {
+        const ans = parseInt(DOM.answerInput.value);
+        const p = GameState.currentProblem;
+        if (isNaN(ans)) { DOM.answerInput.focus(); return; }
+        const time = Date.now() - this.problemStartTime;
+        const correct = ans === p.answer;
+        GameState.totalAttempts++; GameState.sessionProblems++;
+        p.type === 'multiplication' ? MathEngine.recordFactPerformance(p.display.num1, p.display.num2, correct) : MathEngine.recordFactPerformance(p.answer, p.display.num2, correct);
+        if (correct) {
+            const pts = MathEngine.calculatePoints(p, time);
+            GameState.totalPoints += pts; GameState.sessionPoints += pts; GameState.totalCorrect++; GameState.sessionCorrect++;
+            GameState.currentStreak++; if (GameState.currentStreak > GameState.bestStreak) GameState.bestStreak = GameState.currentStreak;
+            AudioManager.playCorrect(); this.checkAchievements(); this.checkLevelUp();
+        } else { GameState.currentStreak = 0; AudioManager.playIncorrect(); }
+        UI.showFeedback(correct, p, ans); UI.updateStats();
+        GameState.problemsCompleted++; UI.updateProgress();
+        setTimeout(() => { GameState.problemsCompleted >= Settings.sessionLength ? this.endSession() : this.nextProblem(); }, correct ? 1500 : 2500);
+        this.saveData();
+    },
+    checkAchievements() {
+        const earn = id => { if (!GameState.badges.includes(id)) { GameState.badges.push(id); GameState.newBadges.push(id); UI.showAchievement(Badges[id]); } };
+        if (GameState.totalCorrect === 1) earn('firstProblem');
+        if (GameState.currentStreak >= 5) earn('streak5');
+        if (GameState.currentStreak >= 10) earn('streak10');
+        if (GameState.sessionPoints >= 100) earn('points100');
+        if (GameState.level >= 5) earn('level5');
+        if (GameState.level >= 10) earn('level10');
+    },
+    checkLevelUp() {
+        if (GameState.totalPoints >= GameState.level * 100 * GameState.level) { GameState.level++; AudioManager.playLevelUp(); UI.updateStats(); }
+    },
+    checkForBreak() {
+        if (Settings.breakInterval > 0 && (Date.now() - GameState.lastBreakTime) / 60000 >= Settings.breakInterval) this.showBreak();
+    },
+    showBreak() {
+        UI.showScreen('break-screen');
+        let cd = 60; DOM.breakCountdown.textContent = cd;
+        this.breakTimer = setInterval(() => { cd--; DOM.breakCountdown.textContent = cd; if (cd <= 0) this.skipBreak(); }, 1000);
+    },
+    skipBreak() {
+        if (this.breakTimer) { clearInterval(this.breakTimer); this.breakTimer = null; }
+        GameState.lastBreakTime = Date.now(); UI.showScreen('game-screen'); DOM.answerInput.focus();
+    },
+    endSession() {
+        GameState.sessionActive = false;
+        if (this.breakCheckInterval) { clearInterval(this.breakCheckInterval); this.breakCheckInterval = null; }
+        if (GameState.sessionCorrect === Settings.sessionLength && !GameState.badges.includes('perfectSession')) {
+            GameState.badges.push('perfectSession'); GameState.newBadges.push('perfectSession');
+        }
+        const acc = Math.round((GameState.sessionCorrect / Settings.sessionLength) * 100);
+        DOM.sessionCorrectDisplay.textContent = GameState.sessionCorrect;
+        DOM.sessionAccuracy.textContent = acc + '%';
+        DOM.sessionPointsDisplay.textContent = GameState.sessionPoints;
+        DOM.completeTitle.textContent = acc === 100 ? 'Perfect Score!' : acc >= 80 ? 'Great Job!' : acc >= 60 ? 'Good Effort!' : 'Keep Practicing!';
+        if (GameState.newBadges.length > 0) {
+            DOM.badgesEarned.classList.remove('hidden');
+            DOM.newBadges.innerHTML = '';
+            GameState.newBadges.forEach(id => {
+                const b = Badges[id], el = document.createElement('div');
+                el.className = 'badge'; el.innerHTML = `<span class="badge-icon">${b.icon}</span><span class="badge-name">${b.name}</span>`;
+                DOM.newBadges.appendChild(el);
+            });
+        } else DOM.badgesEarned.classList.add('hidden');
+        UI.showScreen('complete-screen'); this.saveData();
+    },
+    continueSession() {
+        GameState.sessionProblems = 0; GameState.sessionCorrect = 0; GameState.sessionPoints = 0;
+        GameState.problemsCompleted = 0; GameState.newBadges = []; GameState.sessionActive = true;
+        GameState.sessionStartTime = Date.now(); GameState.lastBreakTime = Date.now();
+        if (Settings.breakInterval > 0) this.breakCheckInterval = setInterval(() => this.checkForBreak(), 60000);
+        UI.updateProgress(); UI.showScreen('game-screen'); this.nextProblem();
+    },
+    openSettings() { this.populateSettingsUI(); DOM.settingsModal.classList.remove('hidden'); },
+    populateSettingsUI() {
+        DOM.modeSelect.value = Settings.mode; DOM.tableSelect.value = Settings.tableRange;
+        DOM.sessionLengthSelect.value = Settings.sessionLength; DOM.breakIntervalSelect.value = Settings.breakInterval;
+        DOM.showVisualsToggle.checked = Settings.showVisuals; DOM.animationsToggle.checked = Settings.animationsEnabled;
+        DOM.soundsToggle.checked = Settings.soundsEnabled; DOM.focusModeToggle.checked = Settings.focusMode;
+        DOM.largeTextToggle.checked = Settings.largeText; DOM.highContrastToggle.checked = Settings.highContrast;
+    },
+    saveSettings() {
+        Settings.mode = DOM.modeSelect.value; Settings.tableRange = DOM.tableSelect.value;
+        Settings.sessionLength = parseInt(DOM.sessionLengthSelect.value); Settings.breakInterval = parseInt(DOM.breakIntervalSelect.value);
+        Settings.showVisuals = DOM.showVisualsToggle.checked; Settings.animationsEnabled = DOM.animationsToggle.checked;
+        Settings.soundsEnabled = DOM.soundsToggle.checked; Settings.focusMode = DOM.focusModeToggle.checked;
+        Settings.largeText = DOM.largeTextToggle.checked; Settings.highContrast = DOM.highContrastToggle.checked;
+        UI.applySettings(); this.saveData(); DOM.settingsModal.classList.add('hidden');
+    },
+};
+
+document.addEventListener('DOMContentLoaded', () => Game.init());
+    </script>
+</body>
+</html>
