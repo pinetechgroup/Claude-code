@@ -2,8 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Learn multiplication and division with fun! An interactive math game for kids.">
+    <meta name="theme-color" content="#4A90D9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Math Adventure">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <title>Math Adventure - Learn Multiplication & Division</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-96.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-192.png">
+
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -155,17 +173,17 @@
                         <div class="setting-option">
                             <label for="mode-select">Practice Type</label>
                             <select id="mode-select">
-                                <option value="multiplication">Multiplication Only</option>
+                                <option value="multiplication" selected>Multiplication Only</option>
                                 <option value="division">Division Only</option>
-                                <option value="mixed" selected>Mixed Practice</option>
+                                <option value="mixed">Mixed Practice</option>
                             </select>
                         </div>
                         <div class="setting-option">
                             <label for="table-select">Times Tables</label>
                             <select id="table-select">
                                 <option value="beginner">Beginner (2, 5, 10)</option>
-                                <option value="easy">Easy (1, 2, 5, 10)</option>
-                                <option value="medium" selected>Medium (2-6, 10)</option>
+                                <option value="easy" selected>Easy (1, 2, 5, 10)</option>
+                                <option value="medium">Medium (2-6, 10)</option>
                                 <option value="hard">Hard (2-9)</option>
                                 <option value="expert">Expert (2-12)</option>
                             </select>
@@ -257,5 +275,19 @@
     </div>
 
     <script src="game.js"></script>
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>

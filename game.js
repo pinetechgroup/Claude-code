@@ -40,8 +40,8 @@ const GameState = {
 };
 
 const Settings = {
-    mode: 'mixed', // 'multiplication', 'division', 'mixed'
-    tableRange: 'medium', // 'beginner', 'easy', 'medium', 'hard', 'expert'
+    mode: 'multiplication', // 'multiplication', 'division', 'mixed' - Start with multiplication for 9-year-olds
+    tableRange: 'easy', // 'beginner', 'easy', 'medium', 'hard', 'expert' - Easy (1,2,5,10) for starting out
     sessionLength: 10,
     breakInterval: 10, // minutes, 0 = off
     showVisuals: true,
