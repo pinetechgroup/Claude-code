@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Adventure - Learn Multiplication & Division</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="screen active">
+            <div class="welcome-content">
+                <h1>Math Adventure</h1>
+                <p class="subtitle">Learn Multiplication & Division</p>
+
+                <div class="player-setup">
+                    <label for="player-name">What's your name?</label>
+                    <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+                </div>
+
+                <button id="start-btn" class="btn btn-primary btn-large">Start Learning!</button>
+
+                <button id="settings-btn-welcome" class="btn btn-secondary">
+                    <span class="icon">&#9881;</span> Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Game Screen -->
+        <div id="game-screen" class="screen">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="player-info">
+                    <span id="player-display-name">Player</span>
+                    <span class="level-badge">Level <span id="current-level">1</span></span>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-icon star-icon">&#9733;</span>
+                        <span id="points-display">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-icon fire-icon">&#128293;</span>
+                        <span id="streak-display">0</span>
+                    </div>
+                </div>
+                <div class="top-actions">
+                    <button id="pause-btn" class="btn btn-icon" title="Pause">&#10074;&#10074;</button>
+                    <button id="settings-btn-game" class="btn btn-icon" title="Settings">&#9881;</button>
+                </div>
+            </header>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="session-progress" class="progress-fill"></div>
+                </div>
+                <span id="progress-text">0 / 10</span>
+            </div>
+
+            <!-- Main Problem Area -->
+            <main class="problem-area">
+                <!-- Visual Representation -->
+                <div id="visual-area" class="visual-area">
+                    <!-- Arrays, number lines, etc. will be rendered here -->
+                </div>
+
+                <!-- Problem Display -->
+                <div class="problem-display">
+                    <span id="num1" class="problem-number">5</span>
+                    <span id="operator" class="problem-operator multiply">&times;</span>
+                    <span id="num2" class="problem-number">3</span>
+                    <span class="equals">=</span>
+                    <span id="answer-display" class="answer-box">?</span>
+                </div>
+
+                <!-- Answer Input -->
+                <div class="answer-section">
+                    <input type="number" id="answer-input" class="answer-input" placeholder="?" min="0" max="999" autocomplete="off">
+                    <button id="submit-btn" class="btn btn-primary">Check</button>
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-area" class="feedback-area hidden">
+                    <div id="feedback-message" class="feedback-message"></div>
+                    <div id="feedback-explanation" class="feedback-explanation"></div>
+                </div>
+            </main>
+
+            <!-- Hint Button -->
+            <div class="hint-section">
+                <button id="hint-btn" class="btn btn-hint">
+                    <span class="icon">&#128161;</span> Need a hint?
+                </button>
+            </div>
+        </div>
+
+        <!-- Break Screen -->
+        <div id="break-screen" class="screen">
+            <div class="break-content">
+                <h2>Time for a Break!</h2>
+                <p>You've been working hard! Take a moment to rest your eyes.</p>
+                <div class="break-activity">
+                    <p>Try this: Stand up and stretch your arms above your head!</p>
+                </div>
+                <div class="break-timer">
+                    <span id="break-countdown">60</span>s
+                </div>
+                <button id="skip-break-btn" class="btn btn-secondary">I'm Ready to Continue</button>
+            </div>
+        </div>
+
+        <!-- Session Complete Screen -->
+        <div id="complete-screen" class="screen">
+            <div class="complete-content">
+                <h2 id="complete-title">Great Job!</h2>
+                <div class="session-stats">
+                    <div class="stat-card">
+                        <span class="stat-value" id="session-correct">0</span>
+                        <span class="stat-label">Correct</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value" id="session-accuracy">0%</span>
+                        <span class="stat-label">Accuracy</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value" id="session-points">0</span>
+                        <span class="stat-label">Points Earned</span>
+                    </div>
+                </div>
+
+                <div id="badges-earned" class="badges-earned hidden">
+                    <h3>Badges Earned!</h3>
+                    <div id="new-badges" class="badge-list"></div>
+                </div>
+
+                <div class="complete-actions">
+                    <button id="continue-btn" class="btn btn-primary btn-large">Keep Going!</button>
+                    <button id="finish-btn" class="btn btn-secondary">Finish for Now</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button id="close-settings" class="btn btn-icon">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-group">
+                        <h3>Learning Mode</h3>
+                        <div class="setting-option">
+                            <label for="mode-select">Practice Type</label>
+                            <select id="mode-select">
+                                <option value="multiplication">Multiplication Only</option>
+                                <option value="division">Division Only</option>
+                                <option value="mixed" selected>Mixed Practice</option>
+                            </select>
+                        </div>
+                        <div class="setting-option">
+                            <label for="table-select">Times Tables</label>
+                            <select id="table-select">
+                                <option value="beginner">Beginner (2, 5, 10)</option>
+                                <option value="easy">Easy (1, 2, 5, 10)</option>
+                                <option value="medium" selected>Medium (2-6, 10)</option>
+                                <option value="hard">Hard (2-9)</option>
+                                <option value="expert">Expert (2-12)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Session Settings</h3>
+                        <div class="setting-option">
+                            <label for="session-length">Problems per Session</label>
+                            <select id="session-length">
+                                <option value="5">5 (Quick)</option>
+                                <option value="10" selected>10 (Standard)</option>
+                                <option value="15">15 (Extended)</option>
+                                <option value="20">20 (Challenge)</option>
+                            </select>
+                        </div>
+                        <div class="setting-option">
+                            <label for="break-interval">Break Reminder</label>
+                            <select id="break-interval">
+                                <option value="0">Off</option>
+                                <option value="10" selected>Every 10 minutes</option>
+                                <option value="15">Every 15 minutes</option>
+                                <option value="20">Every 20 minutes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Visual Settings</h3>
+                        <div class="setting-option toggle-option">
+                            <label for="show-visuals">Show Visual Helpers</label>
+                            <input type="checkbox" id="show-visuals" checked>
+                        </div>
+                        <div class="setting-option toggle-option">
+                            <label for="animations-enabled">Enable Animations</label>
+                            <input type="checkbox" id="animations-enabled" checked>
+                        </div>
+                        <div class="setting-option toggle-option">
+                            <label for="sounds-enabled">Enable Sounds</label>
+                            <input type="checkbox" id="sounds-enabled" checked>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Accessibility</h3>
+                        <div class="setting-option toggle-option">
+                            <label for="focus-mode">Focus Mode (Minimal UI)</label>
+                            <input type="checkbox" id="focus-mode">
+                        </div>
+                        <div class="setting-option toggle-option">
+                            <label for="large-text">Large Text</label>
+                            <input type="checkbox" id="large-text">
+                        </div>
+                        <div class="setting-option toggle-option">
+                            <label for="high-contrast">High Contrast</label>
+                            <input type="checkbox" id="high-contrast">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="save-settings" class="btn btn-primary">Save Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pause Modal -->
+        <div id="pause-modal" class="modal hidden">
+            <div class="modal-content modal-small">
+                <h2>Game Paused</h2>
+                <p>Take your time!</p>
+                <div class="pause-actions">
+                    <button id="resume-btn" class="btn btn-primary btn-large">Resume</button>
+                    <button id="quit-btn" class="btn btn-secondary">Quit Session</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievement Toast -->
+        <div id="achievement-toast" class="toast hidden">
+            <div class="toast-content">
+                <span class="toast-icon">&#127942;</span>
+                <div class="toast-text">
+                    <strong id="toast-title">Achievement!</strong>
+                    <span id="toast-message"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
