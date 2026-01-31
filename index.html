@@ -39,9 +39,14 @@
 
                 <button id="start-btn" class="btn btn-primary btn-large">Start Learning!</button>
 
-                <button id="settings-btn-welcome" class="btn btn-secondary">
-                    <span class="icon">&#9881;</span> Settings
-                </button>
+                <div class="welcome-buttons">
+                    <button id="progress-btn-welcome" class="btn btn-secondary">
+                        <span class="icon">&#128200;</span> My Progress
+                    </button>
+                    <button id="settings-btn-welcome" class="btn btn-secondary">
+                        <span class="icon">&#9881;</span> Settings
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -258,6 +263,64 @@
                 <div class="pause-actions">
                     <button id="resume-btn" class="btn btn-primary btn-large">Resume</button>
                     <button id="quit-btn" class="btn btn-secondary">Quit Session</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Modal -->
+        <div id="progress-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>&#128200; My Progress</h2>
+                    <button id="close-progress" class="btn btn-icon">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Overall Stats -->
+                    <div class="progress-section">
+                        <h3>Overall Stats</h3>
+                        <div class="progress-stats-grid">
+                            <div class="progress-stat">
+                                <span class="progress-stat-value" id="total-problems-solved">0</span>
+                                <span class="progress-stat-label">Problems Solved</span>
+                            </div>
+                            <div class="progress-stat">
+                                <span class="progress-stat-value" id="overall-accuracy">0%</span>
+                                <span class="progress-stat-label">Accuracy</span>
+                            </div>
+                            <div class="progress-stat">
+                                <span class="progress-stat-value" id="total-points-earned">0</span>
+                                <span class="progress-stat-label">Total Points</span>
+                            </div>
+                            <div class="progress-stat">
+                                <span class="progress-stat-value" id="facts-mastered">0</span>
+                                <span class="progress-stat-label">Facts Mastered</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="progress-section">
+                        <h3>Recent Activity</h3>
+                        <div id="recent-activity" class="recent-activity">
+                            <p class="no-data">No activity yet. Start playing to track your progress!</p>
+                        </div>
+                    </div>
+
+                    <!-- Mastered Facts -->
+                    <div class="progress-section">
+                        <h3>&#11088; Mastered Facts</h3>
+                        <div id="mastered-facts-list" class="mastered-facts">
+                            <p class="no-data">Keep practicing to master facts!</p>
+                        </div>
+                    </div>
+
+                    <!-- Badges Collection -->
+                    <div class="progress-section">
+                        <h3>&#127942; Badges Earned</h3>
+                        <div id="badges-collection" class="badges-collection">
+                            <p class="no-data">Complete challenges to earn badges!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

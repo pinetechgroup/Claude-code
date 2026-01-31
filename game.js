@@ -37,6 +37,12 @@ const GameState = {
 
     // Spaced repetition - tracks difficulty of each fact
     factPerformance: {}, // { "3x4": { correct: 5, incorrect: 2, lastSeen: timestamp } }
+
+    // Progress history - track daily progress over time
+    progressHistory: [], // [{ date: "2024-01-15", correct: 45, attempts: 50, points: 520, sessions: 3 }]
+
+    // Mastered facts (accuracy > 90% with at least 5 attempts)
+    masteredFacts: [],
 };
 
 const Settings = {
@@ -84,16 +90,39 @@ const CorrectMessages = [
     "Super!",
     "Amazing!",
     "Brilliant!",
+    "You're on fire!",
+    "Math superstar!",
+    "Nailed it!",
 ];
 
+// Encouraging messages for wrong answers - supportive and helpful
 const EncouragingMessages = [
-    "Almost there!",
-    "Keep trying!",
-    "You can do it!",
-    "Good effort!",
-    "Don't give up!",
-    "Try again!",
+    "That's okay! Mistakes help us learn.",
+    "Good try! Let's see the answer together.",
+    "You're learning! That's what matters.",
+    "Almost! You're getting better every time.",
+    "No worries! Even math experts make mistakes.",
+    "Keep going! You're doing great.",
+    "Nice effort! Let's try another one.",
+    "That was a tricky one! You'll get it next time.",
+    "Learning takes practice - you're doing amazing!",
+    "Every mistake makes your brain stronger!",
 ];
+
+// Helpful hints based on problem type
+const HelpfulHints = {
+    multiplication: [
+        "Tip: Think of it as groups! {num1} groups of {num2}.",
+        "Try skip counting by {num2}: {skipCount}",
+        "Remember: {num1} × {num2} is the same as {num2} × {num1}!",
+        "Picture {num1} rows with {num2} dots in each row.",
+    ],
+    division: [
+        "Tip: Division is sharing equally. {num1} shared into groups of {num2}.",
+        "Think: What times {num2} equals {num1}?",
+        "How many groups of {num2} fit into {num1}?",
+    ],
+};
 
 // =============================================================================
 // DOM Elements
@@ -110,6 +139,18 @@ const DOM = {
     playerNameInput: document.getElementById('player-name'),
     startBtn: document.getElementById('start-btn'),
     settingsBtnWelcome: document.getElementById('settings-btn-welcome'),
+    progressBtnWelcome: document.getElementById('progress-btn-welcome'),
+
+    // Progress Modal
+    progressModal: document.getElementById('progress-modal'),
+    closeProgress: document.getElementById('close-progress'),
+    totalProblemsSolved: document.getElementById('total-problems-solved'),
+    overallAccuracy: document.getElementById('overall-accuracy'),
+    totalPointsEarned: document.getElementById('total-points-earned'),
+    factsMastered: document.getElementById('facts-mastered'),
+    recentActivity: document.getElementById('recent-activity'),
+    masteredFactsList: document.getElementById('mastered-facts-list'),
+    badgesCollection: document.getElementById('badges-collection'),
 
     // Game UI
     playerDisplayName: document.getElementById('player-display-name'),
@@ -619,27 +660,59 @@ const UI = {
         DOM.feedbackArea.classList.remove('hidden', 'success', 'error');
         DOM.feedbackArea.classList.add(correct ? 'success' : 'error');
 
+        const playerName = GameState.playerName || 'Friend';
+
         if (correct) {
-            DOM.feedbackMessage.textContent = CorrectMessages[Math.floor(Math.random() * CorrectMessages.length)];
+            // Personalized correct message
+            let message = CorrectMessages[Math.floor(Math.random() * CorrectMessages.length)];
+
+            // Add streak encouragement
+            if (GameState.currentStreak >= 3) {
+                message += ` ${GameState.currentStreak} in a row, ${playerName}!`;
+            }
+
+            DOM.feedbackMessage.textContent = message;
             DOM.feedbackExplanation.textContent = `${problem.display.num1} ${problem.display.operator} ${problem.display.num2} = ${problem.answer}`;
             DOM.answerInput.classList.add('correct');
             DOM.answerDisplay.textContent = problem.answer;
         } else {
-            DOM.feedbackMessage.textContent = EncouragingMessages[Math.floor(Math.random() * EncouragingMessages.length)];
-            DOM.feedbackExplanation.textContent = `The answer is ${problem.answer}. ${this.getExplanation(problem)}`;
+            // Supportive message with player's name
+            let message = EncouragingMessages[Math.floor(Math.random() * EncouragingMessages.length)];
+
+            DOM.feedbackMessage.textContent = message;
+            DOM.feedbackExplanation.innerHTML = this.getHelpfulExplanation(problem, userAnswer);
             DOM.answerInput.classList.add('incorrect');
+            DOM.answerDisplay.textContent = problem.answer;
         }
     },
 
     /**
-     * Generate explanation for wrong answer
+     * Generate helpful explanation for wrong answer
      */
-    getExplanation(problem) {
+    getHelpfulExplanation(problem, userAnswer) {
+        const num1 = problem.display.num1;
+        const num2 = problem.display.num2;
+        const answer = problem.answer;
+
+        let explanation = `<strong>The answer is ${answer}</strong><br>`;
+
         if (problem.type === 'multiplication') {
-            return `${problem.display.num1} groups of ${problem.display.num2} equals ${problem.answer}.`;
+            // Generate skip counting hint
+            const skipCount = [];
+            for (let i = 1; i <= num1 && i <= 5; i++) {
+                skipCount.push(num2 * i);
+            }
+            if (num1 > 5) skipCount.push('...');
+            skipCount.push(answer);
+
+            explanation += `${num1} × ${num2} = ${num1} groups of ${num2}<br>`;
+            explanation += `<span style="color: var(--text-muted)">Count by ${num2}s: ${skipCount.join(', ')}</span>`;
         } else {
-            return `${problem.display.num1} divided into groups of ${problem.display.num2} equals ${problem.answer}.`;
+            explanation += `${num1} ÷ ${num2} = How many ${num2}s fit in ${num1}?<br>`;
+            explanation += `<span style="color: var(--text-muted)">${num2} × ${answer} = ${num1}</span>`;
         }
+
+        return explanation;
     },
 
     /**
@@ -733,6 +806,9 @@ const Game = {
      */
     saveData() {
         try {
+            // Update mastered facts
+            this.updateMasteredFacts();
+
             localStorage.setItem('mathAdventure_state', JSON.stringify({
                 playerName: GameState.playerName,
                 level: GameState.level,
@@ -742,11 +818,61 @@ const Game = {
                 bestStreak: GameState.bestStreak,
                 badges: GameState.badges,
                 factPerformance: GameState.factPerformance,
+                progressHistory: GameState.progressHistory,
+                masteredFacts: GameState.masteredFacts,
             }));
             localStorage.setItem('mathAdventure_settings', JSON.stringify(Settings));
         } catch (e) {
             console.log('Could not save data');
         }
+    },
+
+    /**
+     * Update list of mastered facts (accuracy > 85% with at least 5 attempts)
+     */
+    updateMasteredFacts() {
+        GameState.masteredFacts = [];
+        for (const [key, perf] of Object.entries(GameState.factPerformance)) {
+            const total = perf.correct + perf.incorrect;
+            if (total >= 5) {
+                const accuracy = perf.correct / total;
+                if (accuracy >= 0.85) {
+                    GameState.masteredFacts.push(key);
+                }
+            }
+        }
+    },
+
+    /**
+     * Record today's progress
+     */
+    recordDailyProgress() {
+        const today = new Date().toISOString().split('T')[0]; // "2024-01-15" format
+
+        // Find or create today's entry
+        let todayEntry = GameState.progressHistory.find(entry => entry.date === today);
+
+        if (!todayEntry) {
+            todayEntry = {
+                date: today,
+                correct: 0,
+                attempts: 0,
+                points: 0,
+                sessions: 0,
+            };
+            GameState.progressHistory.push(todayEntry);
+
+            // Keep only last 30 days of history
+            if (GameState.progressHistory.length > 30) {
+                GameState.progressHistory.shift();
+            }
+        }
+
+        // Update today's stats
+        todayEntry.correct += GameState.sessionCorrect;
+        todayEntry.attempts += GameState.sessionProblems;
+        todayEntry.points += GameState.sessionPoints;
+        todayEntry.sessions += 1;
     },
 
     /**
@@ -759,6 +885,11 @@ const Game = {
             if (e.key === 'Enter') this.startGame();
         });
         DOM.settingsBtnWelcome.addEventListener('click', () => this.openSettings());
+        DOM.progressBtnWelcome.addEventListener('click', () => this.openProgress());
+        DOM.closeProgress.addEventListener('click', () => this.closeProgress());
+        DOM.progressModal.addEventListener('click', (e) => {
+            if (e.target === DOM.progressModal) this.closeProgress();
+        });
 
         // Game screen
         DOM.submitBtn.addEventListener('click', () => this.submitAnswer());
@@ -1016,6 +1147,9 @@ const Game = {
             this.breakCheckInterval = null;
         }
 
+        // Record daily progress
+        this.recordDailyProgress();
+
         // Check for perfect session
         if (GameState.sessionCorrect === Settings.sessionLength) {
             if (!GameState.badges.includes('perfectSession')) {
@@ -1122,6 +1256,117 @@ const Game = {
     openSettings() {
         this.populateSettingsUI();
         DOM.settingsModal.classList.remove('hidden');
+    },
+
+    /**
+     * Open progress modal
+     */
+    openProgress() {
+        this.populateProgressUI();
+        DOM.progressModal.classList.remove('hidden');
+    },
+
+    /**
+     * Close progress modal
+     */
+    closeProgress() {
+        DOM.progressModal.classList.add('hidden');
+    },
+
+    /**
+     * Populate progress modal with data
+     */
+    populateProgressUI() {
+        // Overall stats
+        DOM.totalProblemsSolved.textContent = GameState.totalCorrect;
+        DOM.totalPointsEarned.textContent = GameState.totalPoints;
+        DOM.factsMastered.textContent = GameState.masteredFacts ? GameState.masteredFacts.length : 0;
+
+        // Calculate overall accuracy
+        const accuracy = GameState.totalAttempts > 0
+            ? Math.round((GameState.totalCorrect / GameState.totalAttempts) * 100)
+            : 0;
+        DOM.overallAccuracy.textContent = accuracy + '%';
+
+        // Recent activity
+        this.renderRecentActivity();
+
+        // Mastered facts
+        this.renderMasteredFacts();
+
+        // Badges
+        this.renderBadgesCollection();
+    },
+
+    /**
+     * Render recent activity list
+     */
+    renderRecentActivity() {
+        if (!GameState.progressHistory || GameState.progressHistory.length === 0) {
+            DOM.recentActivity.innerHTML = '<p class="no-data">No activity yet. Start playing to track your progress!</p>';
+            return;
+        }
+
+        // Show last 7 days, most recent first
+        const recentDays = GameState.progressHistory.slice(-7).reverse();
+
+        let html = '';
+        for (const day of recentDays) {
+            const date = new Date(day.date);
+            const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            const dayAccuracy = day.attempts > 0 ? Math.round((day.correct / day.attempts) * 100) : 0;
+
+            html += `
+                <div class="activity-day">
+                    <span class="activity-date">${dateStr}</span>
+                    <div class="activity-stats">
+                        <span>${day.correct}/${day.attempts} correct</span>
+                        <span class="activity-accuracy">${dayAccuracy}%</span>
+                        <span>+${day.points} pts</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        DOM.recentActivity.innerHTML = html;
+    },
+
+    /**
+     * Render mastered facts
+     */
+    renderMasteredFacts() {
+        if (!GameState.masteredFacts || GameState.masteredFacts.length === 0) {
+            DOM.masteredFactsList.innerHTML = '<p class="no-data">Keep practicing to master facts! (85%+ accuracy)</p>';
+            return;
+        }
+
+        let html = '';
+        for (const fact of GameState.masteredFacts) {
+            // Convert "3x4" to "3 × 4"
+            const display = fact.replace('x', ' × ');
+            html += `<span class="mastered-fact">${display}</span>`;
+        }
+
+        DOM.masteredFactsList.innerHTML = html;
+    },
+
+    /**
+     * Render badges collection
+     */
+    renderBadgesCollection() {
+        let html = '';
+
+        for (const [id, badge] of Object.entries(Badges)) {
+            const earned = GameState.badges.includes(id);
+            html += `
+                <div class="badge-item ${earned ? '' : 'locked'}">
+                    <span class="badge-item-icon">${badge.icon}</span>
+                    <span class="badge-item-name">${badge.name}</span>
+                </div>
+            `;
+        }
+
+        DOM.badgesCollection.innerHTML = html;
     },
 
     /**
