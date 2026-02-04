@@ -56,6 +56,10 @@ const Settings = {
     focusMode: false,
     largeText: false,
     highContrast: false,
+    // Cloud sync settings
+    cloudSyncEnabled: false,
+    googleScriptUrl: '', // URL of deployed Google Apps Script web app
+    parentEmail: '', // Optional email for progress reports
 };
 
 const TableRanges = {
@@ -385,6 +389,224 @@ const AdaptiveLearning = {
 };
 
 // =============================================================================
+// Cloud Sync with Google Apps Script
+// =============================================================================
+
+const CloudSync = {
+    playerId: null,
+    lastSyncTime: null,
+    syncQueue: [],
+    isSyncing: false,
+
+    /**
+     * Initialize cloud sync
+     */
+    init() {
+        // Load or generate player ID
+        this.playerId = localStorage.getItem('mathAdventure_playerId');
+        if (!this.playerId && Settings.cloudSyncEnabled) {
+            this.playerId = this.generatePlayerId();
+            localStorage.setItem('mathAdventure_playerId', this.playerId);
+        }
+
+        // Load last sync time
+        this.lastSyncTime = localStorage.getItem('mathAdventure_lastSync');
+    },
+
+    /**
+     * Generate a unique player ID
+     */
+    generatePlayerId() {
+        return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    },
+
+    /**
+     * Check if cloud sync is properly configured
+     */
+    isConfigured() {
+        return Settings.cloudSyncEnabled && Settings.googleScriptUrl && Settings.googleScriptUrl.length > 0;
+    },
+
+    /**
+     * Sync all progress to Google Sheets
+     */
+    async syncProgress() {
+        if (!this.isConfigured()) return { success: false, reason: 'Not configured' };
+        if (this.isSyncing) return { success: false, reason: 'Sync in progress' };
+
+        this.isSyncing = true;
+
+        try {
+            const response = await fetch(Settings.googleScriptUrl, {
+                method: 'POST',
+                mode: 'no-cors', // Google Apps Script requires this
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'syncProgress',
+                    playerId: this.playerId,
+                    playerName: GameState.playerName,
+                    level: GameState.level,
+                    totalPoints: GameState.totalPoints,
+                    totalCorrect: GameState.totalCorrect,
+                    totalAttempts: GameState.totalAttempts,
+                    bestStreak: GameState.bestStreak,
+                    progressHistory: GameState.progressHistory,
+                    factPerformance: GameState.factPerformance,
+                    masteredFacts: GameState.masteredFacts,
+                    badges: GameState.badges,
+                }),
+            });
+
+            this.lastSyncTime = new Date().toISOString();
+            localStorage.setItem('mathAdventure_lastSync', this.lastSyncTime);
+
+            console.log('Cloud sync completed');
+            return { success: true, lastSync: this.lastSyncTime };
+
+        } catch (error) {
+            console.error('Cloud sync failed:', error);
+            return { success: false, error: error.message };
+        } finally {
+            this.isSyncing = false;
+        }
+    },
+
+    /**
+     * Save a single session to the cloud
+     */
+    async saveSession(sessionData) {
+        if (!this.isConfigured()) return;
+
+        try {
+            await fetch(Settings.googleScriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'saveSession',
+                    playerId: this.playerId,
+                    playerName: GameState.playerName,
+                    correct: sessionData.correct,
+                    attempts: sessionData.attempts,
+                    points: sessionData.points,
+                }),
+            });
+
+            console.log('Session saved to cloud');
+        } catch (error) {
+            console.error('Failed to save session:', error);
+        }
+    },
+
+    /**
+     * Fetch progress from cloud (for cross-device sync)
+     */
+    async fetchProgress() {
+        if (!this.isConfigured() || !this.playerId) return null;
+
+        try {
+            const url = `${Settings.googleScriptUrl}?action=getProgress&playerId=${encodeURIComponent(this.playerId)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.success) {
+                return data;
+            }
+            return null;
+        } catch (error) {
+            console.error('Failed to fetch progress:', error);
+            return null;
+        }
+    },
+
+    /**
+     * Get leaderboard data
+     */
+    async getLeaderboard(limit = 10) {
+        if (!this.isConfigured()) return null;
+
+        try {
+            const url = `${Settings.googleScriptUrl}?action=getLeaderboard&limit=${limit}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.success) {
+                return data.leaderboard;
+            }
+            return null;
+        } catch (error) {
+            console.error('Failed to fetch leaderboard:', error);
+            return null;
+        }
+    },
+
+    /**
+     * Subscribe parent email for progress reports
+     */
+    async subscribeEmail(email) {
+        if (!this.isConfigured()) return { success: false };
+
+        try {
+            await fetch(Settings.googleScriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'subscribeEmail',
+                    playerId: this.playerId,
+                    email: email,
+                }),
+            });
+
+            Settings.parentEmail = email;
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to subscribe email:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Get sync status indicator HTML
+     */
+    getSyncStatusHtml() {
+        if (!this.isConfigured()) {
+            return '<span class="sync-status offline" title="Cloud sync not configured">&#9675;</span>';
+        }
+
+        if (this.isSyncing) {
+            return '<span class="sync-status syncing" title="Syncing...">&#8635;</span>';
+        }
+
+        if (this.lastSyncTime) {
+            const lastSync = new Date(this.lastSyncTime);
+            const timeAgo = this.getTimeAgo(lastSync);
+            return `<span class="sync-status synced" title="Last synced ${timeAgo}">&#9679;</span>`;
+        }
+
+        return '<span class="sync-status pending" title="Not synced">&#9675;</span>';
+    },
+
+    /**
+     * Get human-readable time ago string
+     */
+    getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        if (seconds < 60) return 'just now';
+        if (seconds < 3600) return Math.floor(seconds / 60) + ' min ago';
+        if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours ago';
+        return Math.floor(seconds / 86400) + ' days ago';
+    },
+};
+
+// =============================================================================
 // DOM Elements
 // =============================================================================
 
@@ -470,6 +692,16 @@ const DOM = {
     focusModeToggle: document.getElementById('focus-mode'),
     largeTextToggle: document.getElementById('large-text'),
     highContrastToggle: document.getElementById('high-contrast'),
+
+    // Cloud sync settings
+    cloudSyncToggle: document.getElementById('cloud-sync-enabled'),
+    googleScriptUrl: document.getElementById('google-script-url'),
+    parentEmail: document.getElementById('parent-email'),
+    cloudSyncOptions: document.getElementById('cloud-sync-options'),
+    parentEmailOption: document.getElementById('parent-email-option'),
+    syncStatusDisplay: document.getElementById('sync-status-display'),
+    syncStatusText: document.getElementById('sync-status-text'),
+    syncNowBtn: document.getElementById('sync-now-btn'),
 
     // Toast
     achievementToast: document.getElementById('achievement-toast'),
@@ -1117,6 +1349,7 @@ const Game = {
         this.bindEvents();
         UI.applySettings();
         AudioManager.init();
+        CloudSync.init();
     },
 
     /**
@@ -1163,9 +1396,30 @@ const Game = {
                 masteredFacts: GameState.masteredFacts,
             }));
             localStorage.setItem('mathAdventure_settings', JSON.stringify(Settings));
+
+            // Trigger cloud sync if enabled (debounced)
+            this.scheduleCloudSync();
         } catch (e) {
             console.log('Could not save data');
         }
+    },
+
+    /**
+     * Schedule cloud sync (debounced to avoid too many requests)
+     */
+    cloudSyncTimeout: null,
+    scheduleCloudSync() {
+        if (!CloudSync.isConfigured()) return;
+
+        // Clear existing timeout
+        if (this.cloudSyncTimeout) {
+            clearTimeout(this.cloudSyncTimeout);
+        }
+
+        // Schedule sync after 5 seconds of inactivity
+        this.cloudSyncTimeout = setTimeout(() => {
+            CloudSync.syncProgress();
+        }, 5000);
     },
 
     /**
@@ -1263,6 +1517,16 @@ const Game = {
         DOM.pauseModal.addEventListener('click', (e) => {
             if (e.target === DOM.pauseModal) this.resumeGame();
         });
+
+        // Cloud sync events
+        if (DOM.cloudSyncToggle) {
+            DOM.cloudSyncToggle.addEventListener('change', (e) => {
+                this.toggleCloudSyncOptions(e.target.checked);
+            });
+        }
+        if (DOM.syncNowBtn) {
+            DOM.syncNowBtn.addEventListener('click', () => this.triggerCloudSync());
+        }
     },
 
     /**
@@ -1542,6 +1806,13 @@ const Game = {
 
         UI.showScreen('complete-screen');
         this.saveData();
+
+        // Save session to cloud
+        CloudSync.saveSession({
+            correct: GameState.sessionCorrect,
+            attempts: Settings.sessionLength,
+            points: GameState.sessionPoints,
+        });
     },
 
     /**
@@ -1737,6 +2008,50 @@ const Game = {
         DOM.focusModeToggle.checked = Settings.focusMode;
         DOM.largeTextToggle.checked = Settings.largeText;
         DOM.highContrastToggle.checked = Settings.highContrast;
+
+        // Cloud sync settings
+        DOM.cloudSyncToggle.checked = Settings.cloudSyncEnabled;
+        DOM.googleScriptUrl.value = Settings.googleScriptUrl || '';
+        DOM.parentEmail.value = Settings.parentEmail || '';
+
+        // Toggle cloud sync options visibility
+        this.toggleCloudSyncOptions(Settings.cloudSyncEnabled);
+        this.updateSyncStatusDisplay();
+    },
+
+    /**
+     * Toggle cloud sync options visibility
+     */
+    toggleCloudSyncOptions(enabled) {
+        if (DOM.cloudSyncOptions) {
+            DOM.cloudSyncOptions.style.display = enabled ? 'block' : 'none';
+        }
+        if (DOM.parentEmailOption) {
+            DOM.parentEmailOption.style.display = enabled ? 'block' : 'none';
+        }
+        if (DOM.syncStatusDisplay) {
+            DOM.syncStatusDisplay.style.display = enabled ? 'flex' : 'none';
+        }
+    },
+
+    /**
+     * Update sync status display
+     */
+    updateSyncStatusDisplay() {
+        if (!DOM.syncStatusText) return;
+
+        if (!Settings.cloudSyncEnabled || !Settings.googleScriptUrl) {
+            DOM.syncStatusText.textContent = 'Cloud sync not configured';
+            return;
+        }
+
+        if (CloudSync.isSyncing) {
+            DOM.syncStatusText.textContent = 'Syncing...';
+        } else if (CloudSync.lastSyncTime) {
+            DOM.syncStatusText.textContent = 'Last synced: ' + CloudSync.getTimeAgo(new Date(CloudSync.lastSyncTime));
+        } else {
+            DOM.syncStatusText.textContent = 'Not synced yet';
+        }
     },
 
     /**
@@ -1754,12 +2069,48 @@ const Game = {
         Settings.largeText = DOM.largeTextToggle.checked;
         Settings.highContrast = DOM.highContrastToggle.checked;
 
+        // Cloud sync settings
+        Settings.cloudSyncEnabled = DOM.cloudSyncToggle.checked;
+        Settings.googleScriptUrl = DOM.googleScriptUrl.value.trim();
+        Settings.parentEmail = DOM.parentEmail.value.trim();
+
+        // Initialize CloudSync if newly enabled
+        if (Settings.cloudSyncEnabled && !CloudSync.playerId) {
+            CloudSync.init();
+        }
+
+        // Subscribe email if provided
+        if (Settings.cloudSyncEnabled && Settings.parentEmail) {
+            CloudSync.subscribeEmail(Settings.parentEmail);
+        }
+
         // Reset problem pool when settings change for fresh variety
         MathEngine.resetPool();
 
         UI.applySettings();
         this.saveData();
         this.closeSettings();
+    },
+
+    /**
+     * Manually trigger cloud sync
+     */
+    async triggerCloudSync() {
+        if (!CloudSync.isConfigured()) {
+            alert('Please configure cloud sync first:\n1. Deploy the Google Apps Script\n2. Paste the Web App URL in settings');
+            return;
+        }
+
+        DOM.syncStatusText.textContent = 'Syncing...';
+        const result = await CloudSync.syncProgress();
+
+        if (result.success) {
+            this.updateSyncStatusDisplay();
+            alert('Progress synced successfully!');
+        } else {
+            DOM.syncStatusText.textContent = 'Sync failed';
+            alert('Sync failed. Please check your Google Script URL.');
+        }
     },
 };
 
